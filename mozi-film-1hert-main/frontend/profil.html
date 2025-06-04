@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoziVilág - Profilom</title>
+    <link rel="stylesheet" href="./css/main.css"> 
+    <link rel="stylesheet" href="./css/profil.css"> 
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">MoziVilág</a> 
+        <nav>
+            <div id="navLoggedOut" style="display: none;">
+                <a href="#" class="login-btn">Bejelentkezés</a>
+                <a href="#" class="register-btn">Regisztráció</a>
+            </div>
+            <div id="navLoggedIn">
+                <span id="welcomeUser" style="margin-right: 15px; color: #e5e5e5;"></span>
+                <a href="profil.html" class="profile-btn">Profilom</a>
+                <a href="#" id="logoutBtnProfile" class="logout-btn">Kijelentkezés</a> 
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="profile-container">
+            <h2>Profilom</h2>
+            <div class="profile-info">
+                <p><strong>Felhasználónév:</strong> <span id="profileUsername">-</span></p>
+                <p><strong>Email cím:</strong> <span id="profileEmail">-</span></p>
+                <p><em>Ez egy alap profil oldal. Hamarosan további funkciókkal bővül!</em></p>
+            </div>
+            <div class="profile-actions">
+                <a href="index.html" class="form-button">Vissza a filmekhez</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2025 MoziVilág Foglaló Rendszer. Minden jog fenntartva.</p>
+    </footer>
+    <script type="module" src="js/profil.js"></script>
+</body>
+</html>

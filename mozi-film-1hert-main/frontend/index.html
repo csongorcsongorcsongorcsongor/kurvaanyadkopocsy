@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoziVilág - Filmek</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="./css/main.css">
+
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">MoziVilág</a>
+        <nav>
+            <div id="navLoggedOut">
+                <a href="#" class="login-btn">Bejelentkezés</a>
+                <a href="#" class="register-btn">Regisztráció</a>
+            </div>
+            <div id="navLoggedIn" style="display: none;">
+                <span id="welcomeUser" style="margin-right: 15px; color: #e5e5e5;"></span>
+                <a href="profil.html" class="profile-btn" style="/* Hasonló stílus, mint a többi gomb */">Profilom</a>
+                <a href="#" id="logoutBtn" class="logout-btn"
+                    style="/* Hasonló stílus, mint a többi gomb */">Kijelentkezés</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <h2 class="page-title">Aktuális Kínálatunk</h2>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Keress filmcímre...">
+            <button id="searchButton"><i class="fas fa-search"></i> Keresés</button>
+            <button id="clearSearchButton" style="display: none;"><i class="fas fa-times"></i> Törlés</button>
+        </div>
+
+        <!-- "Új film hozzáadása" gomb konténere (JavaScript által vezérelt megjelenítés) -->
+        <div id="addMovieBtnContainer" style="display: none;">
+            <button id="addMovieBtn">+ Új film hozzáadása</button>
+        </div>
+
+        <!-- "Új vetites hozzáadása" gomb konténere (JavaScript által vezérelt megjelenítés) -->
+        <div id="addScreeningBtnContainer" style="display: none;">
+            <button id="addScreeningBtn">+ Új vetítés hozzáadása</button>
+        </div>
+
+        <div class="movie-grid">
+            <!-- A filmkártyák ide töltődnek be dinamikusan JavaScript segítségével -->
+        </div>
+    </main>
+    <footer>
+        <p>© 2025 MoziVilág Foglaló Rendszer. Minden jog fenntartva.</p>
+    </footer>
+
+    <!-- Bejelentkezési/Regisztrációs Modal -->
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" id="modalCloseBtn" aria-label="Bezárás">×</button>
+            <div id="loginFormContainer">
+                <h2>Bejelentkezés</h2>
+                <form id="loginFormActual">
+                    <div class="input-group">
+                        <label for="loginEmail">Email cím</label>
+                        <input type="email" id="loginEmail" name="loginEmail" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="loginPassword">Jelszó</label>
+                        <input type="password" id="loginPassword" name="loginPassword" required>
+                    </div>
+                    <div class="options">
+                        <div class="remember-me">
+                            <input type="checkbox" id="rememberMe" name="rememberMe">
+                            <label for="rememberMe">Emlékezz rám</label>
+                        </div>
+                        <a href="#">Elfelejtetted a jelszavad?</a>
+                    </div>
+                    <button type="submit" class="form-button">Bejelentkezés</button>
+                </form>
+                <p class="switch-form-link">Nincs még fiókod? <a href="#" id="showRegisterFormLink">Regisztrálj itt!</a>
+                </p>
+            </div>
+            <div id="registerFormContainer" class="form-hidden">
+                <h2>Regisztráció</h2>
+                <form id="registerFormActual">
+                    <div class="input-group">
+                        <label for="registerUsername">Felhasználónév</label>
+                        <input type="text" id="registerUsername" name="registerUsername" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="registerEmail">Email cím</label>
+                        <input type="email" id="registerEmail" name="registerEmail" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="registerPassword">Jelszó</label>
+                        <input type="password" id="registerPassword" name="registerPassword" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="confirmPassword">Jelszó megerősítése</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="form-button">Regisztráció</button>
+                </form>
+                <p class="switch-form-link">Már van fiókod? <a href="#" id="showLoginFormLink">Jelentkezz be itt!</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Film Létrehozó/Szerkesztő Modal (JavaScript által vezérelt megjelenítés) -->
+    <div id="movieFormModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="modal-close-btn" id="movieFormModalCloseBtn" aria-label="Bezárás">×</button>
+            <h2 id="movieFormTitle">Film adatai</h2> <!-- Cím JavaScriptből változik -->
+            <form id="movieFormActual">
+                <input type="hidden" id="editMovieId" name="editMovieId">
+                <!-- Rejtett mező szerkesztett film ID-jának tárolására -->
+                <div class="input-group">
+                    <label for="movieTitle">Cím</label>
+                    <input type="text" id="movieTitle" name="movieTitle" required>
+                </div>
+                <div class="input-group">
+                    <label for="movieDescription">Leírás</label>
+                    <textarea id="movieDescription" name="movieDescription" rows="4" required></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="movieYear">Év</label>
+                    <input type="number" id="movieYear" name="movieYear" min="1900" max="2099" required>
+                </div>
+                <div class="input-group">
+                    <label for="movieImg">Kép URL (img)</label>
+                    <input type="url" id="movieImg" name="movieImg" placeholder="https://example.com/image.jpg"
+                        required>
+                </div>
+                <!-- Az accountId-t a JavaScript kezeli a bejelentkezett felhasználó alapján, nem kell a formba -->
+                <button type="submit" class="form-button" id="saveMovieBtn">Mentés</button>
+            </form>
+        </div>
+    </div>
+    <!-- Vetites Létrehozó/Szerkesztő Modal (JavaScript által vezérelt megjelenítés) -->
+    <!-- screeningFormModal -->
+<div id="screeningFormModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <!-- ... -->
+        <form id="screeningFormActual">
+            <!-- JAVÍTOTT ID: editscreeningId -> editScreeningId -->
+            <input type="hidden" id="editScreeningId" name="editScreeningId">
+            
+            <div class="input-group">
+                <label for="screeningRoom">Szoba</label>
+                <!-- JAVÍTOTT ID: screeningRoom (helyes) -->
+                <input type="text" id="screeningRoom" name="screeningRoom" required>
+            </div>
+            <div class="input-group">
+                <label for="screeningTime">Idő</label>
+                <!-- JAVÍTOTT ID: screeningTime (helyes) -->
+                <input type="datetime-local" id="screeningTime" name="screeningTime" required> <!-- Típus módosítva! -->
+            </div>
+            <!-- JAVÍTOTT ID: saveScreeningBtn -->
+            <button type="submit" class="form-button" id="saveScreeningBtn">Mentés</button>
+        </form>
+    </div>
+</div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

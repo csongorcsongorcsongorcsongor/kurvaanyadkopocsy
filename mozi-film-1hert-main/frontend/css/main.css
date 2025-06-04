@@ -1,0 +1,571 @@
+
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    background-color: #141414;
+    color: #e5e5e5;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+
+header {
+    background-color: #1f1f1f;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #e50914;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+header .logo {
+    color: #e50914;
+    font-size: 1.8em;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+header nav a {
+    color: #e5e5e5;
+    text-decoration: none;
+    padding: 8px 15px;
+    margin-left: 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer; 
+}
+
+header nav a.login-btn {
+    border: 1px solid #e50914;
+}
+header nav a.login-btn:hover {
+    background-color: #e50914;
+    color: #fff;
+}
+
+header nav a.register-btn {
+    background-color: #e50914;
+    color: #fff;
+}
+header nav a.register-btn:hover {
+    background-color: #f6121d;
+}
+
+
+main {
+    flex-grow: 1;
+    padding: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto; 
+    box-sizing: border-box;
+}
+
+.page-title {
+    text-align: center;
+    color: #e5e5e5;
+    font-size: 2.2em;
+    margin-bottom: 30px;
+}
+
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.movie-card {
+    background-color: #1f1f1f;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+.movie-card img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.movie-info {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.movie-info h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.4em;
+    color: #fff;
+}
+
+.movie-info .genre {
+    font-size: 0.9em;
+    color: #b3b3b3;
+    margin-bottom: 10px;
+}
+
+.movie-info .description {
+    font-size: 0.95em;
+    color: #e5e5e5;
+    line-height: 1.5;
+    margin-bottom: 15px;
+    flex-grow: 1;
+}
+
+.movie-info .cta-button {
+    display: inline-block;
+    background-color: #e50914;
+    color: white;
+    padding: 10px 15px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    margin-top: auto; 
+}
+
+.movie-info .cta-button:hover {
+    background-color: #f6121d;
+}
+
+
+footer {
+    background-color: #1f1f1f;
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: auto; 
+    font-size: 0.9em;
+    border-top: 1px solid #333;
+}
+
+/* MODALOK (Bejelentkezés, Regisztráció) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); 
+    display: none; 
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 15px; 
+    box-sizing: border-box;
+}
+
+.modal-content {
+    background-color: #1f1f1f;
+    padding: 30px 40px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    animation: fadeInModal 0.3s ease-out;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    font-size: 2em; 
+    cursor: pointer;
+    line-height: 1;
+    padding: 5px;
+}
+.modal-close-btn:hover {
+    color: #e50914;
+}
+
+.modal-content h2 {
+    color: #e5e5e5;
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+    text-align: center;
+}
+
+
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #b3b3b3;
+    font-size: 0.95em;
+}
+
+.input-group input[type="text"],
+.input-group input[type="email"],
+.input-group input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #333;
+    background-color: #333;
+    color: #e5e5e5;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-group input[type="text"]:focus,
+.input-group input[type="email"]:focus,
+.input-group input[type="password"]:focus {
+    outline: none;
+    border-color: #e50914;
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.3);
+}
+
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 0.9em;
+}
+
+.options .remember-me {
+    display: flex;
+    align-items: center;
+}
+
+.options .remember-me input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: #e50914;
+}
+
+.options .remember-me label {
+    color: #b3b3b3;
+}
+
+.options a {
+    color: #b3b3b3;
+    text-decoration: none;
+}
+
+.options a:hover {
+    color: #e50914;
+    text-decoration: underline;
+}
+
+
+.form-button {
+    background-color: #e50914;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.form-button:hover {
+    background-color: #f6121d;
+}
+
+
+.switch-form-link {
+    font-size: 0.9em;
+    color: #b3b3b3;
+    text-align: center;
+    margin-top: 15px;
+}
+
+.switch-form-link a {
+    color: #e50914;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.switch-form-link a:hover {
+    text-decoration: underline;
+}
+
+
+.form-hidden {
+    display: none;
+}
+
+.admin-movie-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end; 
+}
+.admin-movie-actions button {
+    padding: 6px 10px;
+    font-size: 0.85em;
+    cursor: pointer;
+    border: none; 
+    border-radius: 4px;
+    color: white;
+    transition: background-color 0.2s ease-in-out;
+}
+.admin-movie-actions .update-movie-btn {
+    background-color: #f0ad4e; 
+}
+.admin-movie-actions .update-movie-btn:hover {
+    background-color: #ec971f;
+}
+.admin-movie-actions .delete-movie-btn {
+    background-color: #d9534f; 
+}
+.admin-movie-actions .delete-movie-btn:hover {
+    background-color: #c9302c;
+}
+#addMovieBtnContainer {
+    text-align: right;
+    margin-bottom: 20px;
+    padding-right: 10px;
+}
+#addMovieBtn {
+    background-color: #5cb85c; 
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+}
+#addMovieBtn:hover {
+    background-color: #4cae4c;
+}
+#addScreeningBtnContainer {
+    text-align: right;
+    margin-bottom: 20px;
+    padding-right: 10px;
+}
+#addScreeningBtn {
+    background-color: #5cb85c; 
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+}
+#addScreeningBtn:hover {
+    background-color: #4cae4c;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.search-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 25px; /* Több hely a filmrács előtt */
+    margin-top: 10px;   /* Kis hely a cím után */
+    padding: 10px;
+    /* background-color: #2c2c2c; /* Enyhén eltérő háttér */
+    /* border-radius: 8px; */
+    flex-wrap: wrap; /* Tördelés kisebb képernyőkön */
+    gap: 10px; /* Hely az elemek között */
+}
+
+.search-container input[type="text"] {
+    padding: 12px 18px;
+    font-size: 1rem;
+    border: 1px solid #555;
+    border-radius: 25px; /* Teljesen kerekített */
+    background-color: #1f1f1f; /* Sötétebb input háttér */
+    color: #e5e5e5;
+    outline: none;
+    min-width: 250px;
+    flex-grow: 1; /* Engedi nőni */
+    max-width: 400px; /* Maximális szélesség */
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-container input[type="text"]:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.5); /* Finom fókusz kiemelés */
+}
+
+.search-container input[type="text"]::placeholder {
+    color: #888;
+}
+
+.search-container button {
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: none;
+    background-color: #e50914;
+    color: white;
+    cursor: pointer;
+    border-radius: 25px; /* Teljesen kerekített */
+    transition: background-color 0.3s;
+    display: inline-flex; /* Ikon és szöveg egymás mellett */
+    align-items: center;
+    gap: 8px; /* Hely az ikon és szöveg között */
+}
+
+.search-container button i {
+    font-size: 0.9em; /* Ikon mérete a szöveghez képest */
+}
+
+
+.search-container button#clearSearchButton {
+    background-color: #666; /* Szürkébb törlés gomb */
+}
+
+.search-container button:hover {
+    background-color: #f40612;
+}
+.search-container button#clearSearchButton:hover {
+    background-color: #777;
+}
+
+
+/* Stílusok az Új film hozzáadása gombnak, hogy jobban illeszkedjen */
+#addMovieBtnContainer {
+    text-align: center; /* Középre igazítja a gombot */
+    margin-bottom: 20px;
+}
+
+#addMovieBtn {
+    background-color: #007bff; /* Kék színű gomb, mint egy "action" gomb */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#addMovieBtn:hover {
+    background-color: #0056b3;
+}
+
+/* Stílusok az Új vetites hozzáadása gombnak, hogy jobban illeszkedjen */
+#addScreeningBtnContainer {
+    text-align: center; /* Középre igazítja a gombot */
+    margin-bottom: 20px;
+}
+
+#addScreeningBtn {
+    background-color: #007bff; /* Kék színű gomb, mint egy "action" gomb */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#addScreeningBtn:hover {
+    background-color: #0056b3;
+}
+
+@media (max-width: 600px) {
+    .search-container {
+        flex-direction: column; /* Elemek egymás alá kerülnek */
+    }
+    .search-container input[type="text"],
+    .search-container button {
+        width: 100%; /* Teljes szélesség kisebb képernyőn */
+        max-width: 350px; /* De ne legyen túl széles */
+        justify-content: center; /* Gomb tartalmának középre igazítása */
+    }
+}
+
+
+
+
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        padding: 15px;
+    }
+    header .logo {
+        margin-bottom: 10px;
+        text-align: center; 
+    }
+    header nav {
+        width: 100%;
+        display: flex;
+        justify-content: space-around; 
+    }
+    header nav a {
+        margin-left: 5px;
+        margin-right: 5px;
+        flex-grow: 1; 
+        text-align: center;
+    }
+    .page-title {
+        font-size: 1.8em;
+    }
+    .movie-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    .modal-content {
+        padding: 20px;
+        margin: 10px; 
+    }
+}
+
+@media (max-width: 480px) {
+    main {
+        padding: 10px;
+    }
+    .movie-info h3 {
+        font-size: 1.2em;
+    }
+    header nav a {
+        padding: 8px 10px; 
+        font-size: 0.9em;
+    }
+    .modal-content h2 {
+        font-size: 1.5em;
+    }
+    .input-group input[type="text"],
+    .input-group input[type="email"],
+    .input-group input[type="password"] {
+        padding: 10px 12px;
+    }
+    .form-button {
+        padding: 10px 15px;
+        font-size: 1em;
+    }
+}
