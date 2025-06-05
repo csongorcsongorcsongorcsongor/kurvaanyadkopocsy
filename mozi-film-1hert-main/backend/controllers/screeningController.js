@@ -8,7 +8,9 @@ const User = require('../models/User')
 
 exports.getAllScreenings = async (req, res) => {
     try {
-        const screenings = await Screenings.findAll();
+        const screenings = await Screenings.findAll({
+            order: [['time', 'ASC']] // Rendezés idő szerint
+        });
         res.status(200).json(screenings);
     } catch (error) {
         console.error('Error fetching screenings:', error);

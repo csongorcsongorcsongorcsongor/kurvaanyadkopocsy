@@ -12,7 +12,7 @@ const Screenings = sequelize.define('screenings', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    time: {
+    time: { 
         type: DataTypes.DATE,
         allowNull: false
     },

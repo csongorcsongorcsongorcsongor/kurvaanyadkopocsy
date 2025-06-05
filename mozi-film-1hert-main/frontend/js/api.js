@@ -62,7 +62,26 @@ export const getMovies = async () => {
         throw error;
     }
 };
-
+export const getScreenings = async () => {
+    try {
+        const res = await fetch('/api/screenings/screenings');
+        if (!res.ok) {
+            let errorMessage = 'Vetítések betöltése sikertelen.';
+            try {
+                const errorData = await res.json();
+                errorMessage = errorData.message || errorMessage;
+            } catch (jsonError) {
+                errorMessage = res.statusText || errorMessage;
+            }
+            throw new Error(errorMessage);
+        }
+        const data = await res.json();
+        return data;
+    } catch (error) {
+        console.error('Hiba a vetítések lekérése során:', error);
+        throw error;
+    }
+};
 
 // export const getOneMovieAPI = async (movieId) => {
 // try {

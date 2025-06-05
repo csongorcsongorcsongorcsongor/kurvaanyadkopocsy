@@ -8,6 +8,7 @@ import {
     updateMovieAPI,
     deleteMovieAPI,
     createScreeningAPI,
+    getScreenings,
     /*, searchMoviesByTitleAPI */
 } from './api.js';
 
@@ -48,6 +49,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const addMovieBtnContainer = document.getElementById('addMovieBtnContainer');
     const addMovieBtn = document.getElementById('addMovieBtn');
 
+    
+    const screeningsGrid = document.querySelector('.screenings-grid');
+    const screeningsTitle = document.querySelector('.screenings-title');
     const addScreeningBtnContainer = document.getElementById('addScreeningBtnContainer');
     const addScreeningBtn = document.getElementById('addScreeningBtn')
 
@@ -218,6 +222,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (movieGrid) {
             loadAndDisplayMovies();
         }
+    
+        if (screeningsGrid) {
+            loadAndDisplayScreenings();
+        }
     }
 
     function handleLoginSuccess(loginResponse) {
@@ -344,6 +352,57 @@ document.addEventListener('DOMContentLoaded', function () {
             movieGrid.appendChild(movieCard);
         });
     }
+     function displayScreenings(screeningsToDisplay) {
+        screeningsGrid.innerHTML = '';
+
+        if (!screeningsToDisplay || screeningsToDisplay.length === 0) {
+            screeningsGrid.innerHTML = '<p class="info-message">Jelenleg nincsenek elérhető vetítések.</p>';
+            return;
+        }
+
+        const admin = isAdminUser();
+
+        screeningsToDisplay.forEach(screening => {
+            const screeningCard = document.createElement('div');
+            screeningCard.classList.add('screening-card');
+            screeningCard.dataset.screeningId = screening.id;
+
+            const room = document.createElement('h3');
+            room.textContent = `Szoba: ${screening.room}`;
+
+            const time = document.createElement('p');
+            const date = new Date(screening.time);
+            time.textContent = `Idő: ${date.toLocaleString()}`;
+
+            const adminName = document.createElement('p');
+            adminName.textContent = `Admin: ${screening.adminName}`;
+
+            screeningCard.appendChild(room);
+            screeningCard.appendChild(time);
+            screeningCard.appendChild(adminName);
+
+            if (admin) {
+                const adminActionsDiv = document.createElement('div');
+                adminActionsDiv.classList.add('admin-screening-actions');
+
+                const updateBtn = document.createElement('button');
+                updateBtn.textContent = 'Szerkesztés';
+                updateBtn.classList.add('update-screening-btn', 'admin-action-btn');
+                updateBtn.dataset.screeningId = screening.id;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Törlés';
+                deleteBtn.classList.add('delete-screening-btn', 'admin-action-btn');
+                deleteBtn.dataset.screeningId = screening.id;
+
+                adminActionsDiv.appendChild(updateBtn);
+                adminActionsDiv.appendChild(deleteBtn);
+                screeningCard.appendChild(adminActionsDiv);
+            }
+
+            screeningsGrid.appendChild(screeningCard);
+        });
+    }
 
     async function loadAndDisplayMovies(forceReload = false) {
         if (!movieGrid) return;
@@ -368,6 +427,20 @@ document.addEventListener('DOMContentLoaded', function () {
             if (movieGrid) {
                 movieGrid.innerHTML = `<p class="error-message">Hiba történt a filmek betöltése közben. Kérjük, próbálja később! (${error.message})</p>`;
             }
+        }
+    }
+     // Vetítések megjelenítése
+    async function loadAndDisplayScreenings() {
+        if (!screeningsGrid) return;
+        
+        screeningsGrid.innerHTML = '<p class="loading-message">Vetítések betöltése...</p>';
+        
+        try {
+            const screeningsData = await getScreenings();
+            displayScreenings(screeningsData);
+        } catch (error) {
+            console.error("Hiba a vetítések betöltésekor:", error);
+            screeningsGrid.innerHTML = `<p class="error-message">Hiba történt a vetítések betöltése közben. Kérjük, próbálja később! (${error.message})</p>`;
         }
     }
 

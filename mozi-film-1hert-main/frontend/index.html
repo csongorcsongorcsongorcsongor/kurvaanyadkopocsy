@@ -48,6 +48,9 @@
         <div class="movie-grid">
             <!-- A filmkártyák ide töltődnek be dinamikusan JavaScript segítségével -->
         </div>
+
+        <h2 class="page-title screenings-title">Vetítések</h2>
+        <div class="screenings-grid"></div>
     </main>
     <footer>
         <p>© 2025 MoziVilág Foglaló Rendszer. Minden jog fenntartva.</p>
@@ -139,28 +142,29 @@
     </div>
     <!-- Vetites Létrehozó/Szerkesztő Modal (JavaScript által vezérelt megjelenítés) -->
     <!-- screeningFormModal -->
-<div id="screeningFormModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <!-- ... -->
-        <form id="screeningFormActual">
-            <!-- JAVÍTOTT ID: editscreeningId -> editScreeningId -->
-            <input type="hidden" id="editScreeningId" name="editScreeningId">
-            
-            <div class="input-group">
-                <label for="screeningRoom">Szoba</label>
-                <!-- JAVÍTOTT ID: screeningRoom (helyes) -->
-                <input type="text" id="screeningRoom" name="screeningRoom" required>
-            </div>
-            <div class="input-group">
-                <label for="screeningTime">Idő</label>
-                <!-- JAVÍTOTT ID: screeningTime (helyes) -->
-                <input type="datetime-local" id="screeningTime" name="screeningTime" required> <!-- Típus módosítva! -->
-            </div>
-            <!-- JAVÍTOTT ID: saveScreeningBtn -->
-            <button type="submit" class="form-button" id="saveScreeningBtn">Mentés</button>
-        </form>
+    <div id="screeningFormModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <!-- ... -->
+            <form id="screeningFormActual">
+                <!-- JAVÍTOTT ID: editscreeningId -> editScreeningId -->
+                <input type="hidden" id="editScreeningId" name="editScreeningId">
+
+                <div class="input-group">
+                    <label for="screeningRoom">Szoba</label>
+                    <!-- JAVÍTOTT ID: screeningRoom (helyes) -->
+                    <input type="text" id="screeningRoom" name="screeningRoom" required>
+                </div>
+                <div class="input-group">
+                    <label for="screeningTime">Idő</label>
+                    <!-- JAVÍTOTT ID: screeningTime (helyes) -->
+                    <input type="datetime-local" id="screeningTime" name="screeningTime" required>
+                    <!-- Típus módosítva! -->
+                </div>
+                <!-- JAVÍTOTT ID: saveScreeningBtn -->
+                <button type="submit" class="form-button" id="saveScreeningBtn">Mentés</button>
+            </form>
+        </div>
     </div>
-</div>
 
     <script type="module" src="js/main.js"></script>
 </body>
