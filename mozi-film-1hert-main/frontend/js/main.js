@@ -1,4 +1,7 @@
 // js/main.js
+
+// API funkciók importálása a külső api.js fájlból.
+// Ezek a függvények felelnek a szerverrel való kommunikációért.
 import {
     checkUser,
     createUser,
@@ -8,13 +11,21 @@ import {
     deleteMovieAPI,
     createScreeningAPI,
     getScreenings,
-    getScreeningsByMovieAPI, // ÚJ import
+    getScreeningsByMovieAPI, // ÚJ import a vetítések filmszerinti szűréséhez
 } from './api.js';
 
+// Az eseménykezelő biztosítja, hogy a JavaScript kód csak azután fusson le,
+// miután a teljes HTML dokumentum betöltődött és feldolgozásra került.
 document.addEventListener('DOMContentLoaded', function () {
+    
+    // --- DOM Elemek Referenciáinak Gyűjtése ---
+    // A gyakran használt HTML elemeket változókba mentjük a gyorsabb elérés és átláthatóság érdekében.
+
+    // Autentikációs (bejelentkezés/regisztráció) modál és annak bezáró gombja.
     const authModal = document.getElementById('authModal');
     const modalCloseBtn = document.getElementById('modalCloseBtn');
 
+    // Navigációs elemek a bejelentkezett és kijelentkezett állapotokhoz.
     const navLoggedOut = document.getElementById('navLoggedOut');
     const navLoggedIn = document.getElementById('navLoggedIn');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -22,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let loginBtnHeader = null;
     let registerBtnHeader = null;
 
+    // A headerben lévő gombok referenciáinak beállítása.
     if (navLoggedOut) {
         loginBtnHeader = navLoggedOut.querySelector('a.login-btn');
         registerBtnHeader = navLoggedOut.querySelector('a.register-btn');
@@ -30,30 +42,37 @@ document.addEventListener('DOMContentLoaded', function () {
         registerBtnHeader = document.querySelector('header nav a.register-btn');
     }
 
+    // A bejelentkezési és regisztrációs űrlapok konténerei és a közöttük váltó linkek.
     const loginFormContainer = document.getElementById('loginFormContainer');
     const registerFormContainer = document.getElementById('registerFormContainer');
     const showRegisterFormLink = document.getElementById('showRegisterFormLink');
     const showLoginFormLink = document.getElementById('showLoginFormLink');
 
+    // A tényleges <form> elemek.
     const loginFormActual = document.getElementById('loginFormActual');
     const registerFormActual = document.getElementById('registerFormActual');
+    
+    // Inaktivitás miatti automatikus kijelentkeztetés időzítője.
     let inactivityTimer;
-    const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000;
+    const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000; // 10 perc.
 
+    // Keresőmező és a hozzá tartozó gombok.
     const searchInput = document.getElementById('searchInput');
     const searchButton = document.getElementById('searchButton');
     const clearSearchButton = document.getElementById('clearSearchButton');
 
+    // Filmek megjelenítésére szolgáló rács és az adminisztrátori "Új film" gomb.
     const movieGrid = document.querySelector('.movie-grid');
     const addMovieBtnContainer = document.getElementById('addMovieBtnContainer');
     const addMovieBtn = document.getElementById('addMovieBtn');
 
-    
+    // Vetítések megjelenítésére szolgáló rács és a kapcsolódó elemek.
     const screeningsGrid = document.querySelector('.screenings-grid');
     const screeningsTitle = document.querySelector('.screenings-title');
     const addScreeningBtnContainer = document.getElementById('addScreeningBtnContainer');
     const addScreeningBtn = document.getElementById('addScreeningBtn');
 
+    // Film hozzáadása/szerkesztése modál és annak űrlap elemei.
     const movieFormModal = document.getElementById('movieFormModal');
     const movieFormModalCloseBtn = document.getElementById('movieFormModalCloseBtn');
     const movieFormActual = document.getElementById('movieFormActual');
@@ -65,40 +84,48 @@ document.addEventListener('DOMContentLoaded', function () {
     const movieImgInput = document.getElementById('movieImg');
     const saveMovieBtn = document.getElementById('saveMovieBtn');
 
+    // Vetítés hozzáadása/szerkesztése modál és annak űrlap elemei.
     const screeningFormModal = document.getElementById('screeningFormModal');
     const screeningFormModalCloseBtn = document.getElementById('screeningFormModalCloseBtn');
     const screeningFormActual = document.getElementById('screeningFormActual');
     const screeningFormTitle = document.getElementById('screeningFormTitle');
-    const editScreeningIdInput = document.getElementById('editScreeningId'); // 
+    const editScreeningIdInput = document.getElementById('editScreeningId'); 
     const screeningRoomInput = document.getElementById('screeningRoom');
     const screeningTimeInput = document.getElementById('screeningTime');
     const saveScreeningBtn = document.getElementById('saveScreeningBtn');
-    const movieFilterSelect = document.getElementById('movieFilterSelect');
-    const screeningMovieIdSelect = document.getElementById('screeningMovieIdSelect');
+    const movieFilterSelect = document.getElementById('movieFilterSelect'); // Szűrő a vetítések oldalon
+    const screeningMovieIdSelect = document.getElementById('screeningMovieIdSelect'); // Legördülő menü a vetítés létrehozó modálban
 
-    
-    let currentEditingMovieId = null;
-    let currentEditingScreeningId = null;
-    let allMoviesCache = []; // Cache a kliensoldali kereséshez
+    // --- Globális Állapot Változók ---
+    let currentEditingMovieId = null; // A szerkesztés alatt álló film ID-ját tárolja.
+    let currentEditingScreeningId = null; // A szerkesztés alatt álló vetítés ID-ját tárolja.
+    let allMoviesCache = []; // Gyorsítótár a betöltött filmeknek a kliensoldali kereséshez és szűréshez.
 
+    // --- Segédfüggvények (Helpers) ---
+
+    // Visszaadja a bejelentkezési tokent a sessionStorage-ből.
     function getAuthToken() {
         return sessionStorage.getItem('authToken');
     }
 
+    // Visszaadja a bejelentkezett felhasználó adatait a sessionStorage-ből.
     function getUserData() {
         const userDataString = sessionStorage.getItem('userData');
         return userDataString ? JSON.parse(userDataString) : null;
     }
 
+    // Ellenőrzi, hogy a bejelentkezett felhasználó admin-e.
     function isAdminUser() {
         const userData = getUserData();
         return userData && userData.isAdmin === true;
     }
 
+    // Megnyitja az autentikációs modált.
     function openModal() {
         if (authModal) authModal.style.display = 'flex';
     }
 
+    // Bezárja az autentikációs modált és törli az űrlapok tartalmát.
     function closeModal() {
         if (authModal) {
             authModal.style.display = 'none';
@@ -107,6 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Megjeleníti a bejelentkezési űrlapot és elrejti a regisztrációsat.
     function showLoginForm() {
         if (loginFormContainer && registerFormContainer) {
             loginFormContainer.classList.remove('form-hidden');
@@ -114,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Megjeleníti a regisztrációs űrlapot és elrejti a bejelentkezésit.
     function showRegisterForm() {
         if (loginFormContainer && registerFormContainer) {
             loginFormContainer.classList.add('form-hidden');
@@ -121,6 +150,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Megnyitja a film hozzáadása/szerkesztése modált.
+    // 'mode' ('create' vagy 'edit') alapján beállítja a címet és feltölti az űrlapot adatokkal.
     function openMovieFormModal(mode = 'create', movie = null) {
         if (!movieFormModal) return;
         currentEditingMovieId = null;
@@ -130,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
             movieFormTitle.textContent = 'Film szerkesztése';
             editMovieIdInput.value = movie.id;
             movieTitleInput.value = movie.title || '';
-            movieDescriptionInput.value = movie.description || ''; // Itt a teljes leírás kellene
+            movieDescriptionInput.value = movie.description || '';
             movieYearInput.value = movie.year || '';
             movieImgInput.value = movie.img || '';
             currentEditingMovieId = movie.id;
@@ -141,14 +172,15 @@ document.addEventListener('DOMContentLoaded', function () {
         movieFormModal.style.display = 'flex';
     }
 
-    // ÚJ FÜGGVÉNY: A filmválasztó legördülők feltöltése
+    // Feltölti a filmválasztó legördülő menüket (a vetítés szűrőn és a létrehozó modálban) a filmekkel.
     function populateMovieSelects() {
         if (!movieFilterSelect || !screeningMovieIdSelect || allMoviesCache.length === 0) return;
 
-        // Előző opciók törlése (az első kivételével)
+        // Előző opciók törlése (az alapértelmezett kivételével).
         movieFilterSelect.innerHTML = '<option value="all">Összes film</option>';
         screeningMovieIdSelect.innerHTML = '<option value="" disabled selected>Válassz filmet...</option>';
 
+        // Minden filmhez hozzáad egy opciót a legördülő menükhöz.
         allMoviesCache.forEach(movie => {
             const option = document.createElement('option');
             option.value = movie.id;
@@ -158,24 +190,27 @@ document.addEventListener('DOMContentLoaded', function () {
             screeningMovieIdSelect.appendChild(option.cloneNode(true));
         });
     }
-    // Screening form megnyitása - JAVÍTVA
+
+    // Megnyitja a vetítés hozzáadása/szerkesztése modált.
     function openScreeningFormModal(mode = 'create', screening = null) {
         if (!screeningFormModal) return;
         currentEditingScreeningId = null;
         screeningFormActual.reset();
 
+        // Szerkesztés módban feltölti az űrlapot a meglévő adatokkal.
         if (mode === 'edit' && screening) {
             screeningFormTitle.textContent = 'Vetítés szerkesztése';
 
-            // ELLENŐRZÉS HOZZÁADVA
             if (editScreeningIdInput) editScreeningIdInput.value = screening.id;
             if (screeningRoomInput) screeningRoomInput.value = screening.room || '';
 
-            // Dátum formázás ISO formátumba
+            // A dátumot a datetime-local inputnak megfelelő ISO formátumra alakítja.
             if (screeningTimeInput && screening.time) {
                 const date = new Date(screening.time);
                 screeningTimeInput.value = date.toISOString().slice(0, 16);
             }
+            
+            // TODO: A film kiválasztása a legördülőben (screening.movieId alapján).
 
             currentEditingScreeningId = screening.id;
         } else {
@@ -185,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
         screeningFormModal.style.display = 'flex';
     }
 
+    // Bezárja a film modált.
     function closeMovieFormModal() {
         if (movieFormModal) {
             movieFormModal.style.display = 'none';
@@ -193,6 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Bezárja a vetítés modált.
     function closeScreeningFormModal() {
         if (screeningFormModal) {
             screeningFormModal.style.display = 'none';
@@ -201,36 +238,29 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Frissíti a felhasználói felületet a bejelentkezési állapot alapján.
     function updateLoginUI(isLoggedIn, userData = null) {
+        // Navigációs sáv frissítése.
         if (navLoggedOut && navLoggedIn && welcomeUserSpan) {
             if (isLoggedIn) {
                 navLoggedOut.style.display = 'none';
                 navLoggedIn.style.display = 'flex';
-                if (userData && userData.username) {
-                    welcomeUserSpan.textContent = `Üdv, ${userData.username}!`;
-                } else if (userData && userData.emailAddress) {
-                    welcomeUserSpan.textContent = `Üdv, ${userData.emailAddress.split('@')[0]}!`;
-                } else {
-                    welcomeUserSpan.textContent = `Üdv!`;
-                }
+                welcomeUserSpan.textContent = `Üdv, ${userData?.username || userData?.emailAddress?.split('@')[0] || ''}!`;
             } else {
                 navLoggedOut.style.display = 'flex';
                 navLoggedIn.style.display = 'none';
                 welcomeUserSpan.textContent = '';
             }
         } else {
+            // Fallback, ha a komplexebb nav struktúra hiányzik.
             console.warn("A 'navLoggedOut', 'navLoggedIn' vagy 'welcomeUserSpan' elemek hiányoznak a HTML-ből a UI frissítéséhez.");
             if (loginBtnHeader && registerBtnHeader) {
-                if (isLoggedIn) {
-                    loginBtnHeader.style.display = 'none';
-                    registerBtnHeader.style.display = 'none';
-                } else {
-                    loginBtnHeader.style.display = 'inline-block';
-                    registerBtnHeader.style.display = 'inline-block';
-                }
+                loginBtnHeader.style.display = isLoggedIn ? 'none' : 'inline-block';
+                registerBtnHeader.style.display = isLoggedIn ? 'none' : 'inline-block';
             }
         }
 
+        // Admin gombok megjelenítése/elrejtése.
         if (addMovieBtnContainer) {
             addMovieBtnContainer.style.display = isAdminUser() ? 'block' : 'none';
         }
@@ -238,38 +268,42 @@ document.addEventListener('DOMContentLoaded', function () {
             addScreeningBtnContainer.style.display = isAdminUser() ? 'block' : 'none';
         }
 
+        // Tartalom újratöltése a jogosultságok változása miatt (pl. admin gombok).
         if (movieGrid) {
             loadAndDisplayMovies();
         }
-    
         if (screeningsGrid) {
             loadAndDisplayScreenings();
         }
     }
 
+    // Sikeres bejelentkezés után lefutó folyamatok.
     function handleLoginSuccess(loginResponse) {
         sessionStorage.setItem('isLoggedIn', 'true');
-        if (loginResponse.user) sessionStorage.setItem('userData', JSON.stringify(loginResponse.user));
-        if (loginResponse.token) sessionStorage.setItem('authToken', loginResponse.token);
+        sessionStorage.setItem('userData', JSON.stringify(loginResponse.user));
+        sessionStorage.setItem('authToken', loginResponse.token);
         updateLoginUI(true, loginResponse.user);
         closeModal();
         startInactivityTimer();
         alert('Sikeres bejelentkezés!');
     }
 
+    // Kijelentkezéskor lefutó folyamatok.
     function handleLogout(showNotification = true) {
         sessionStorage.removeItem('isLoggedIn');
         sessionStorage.removeItem('userData');
         sessionStorage.removeItem('authToken');
-        allMoviesCache = []; // Cache törlése kijelentkezéskor
+        allMoviesCache = []; // Cache törlése.
         updateLoginUI(false);
         clearTimeout(inactivityTimer);
         if (showNotification) alert('Sikeresen kijelentkezett.');
+        // Ha a profil oldalon van, átirányítjuk a főoldalra.
         if (window.location.pathname.includes('profil.html')) {
             window.location.href = 'index.html';
         }
     }
 
+    // Visszaállítja az inaktivitási időzítőt.
     function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
         inactivityTimer = setTimeout(() => {
@@ -280,24 +314,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }, INACTIVITY_TIMEOUT_MS);
     }
 
+    // Elindítja az inaktivitás figyelését.
     function startInactivityTimer() {
         if (sessionStorage.getItem('isLoggedIn') === 'true') {
             ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-                document.addEventListener(event, resetInactivityTimer, {
-                    passive: true
-                });
+                document.addEventListener(event, resetInactivityTimer, { passive: true });
             });
             resetInactivityTimer();
         }
     }
 
+    // Megjeleníti a filmeket a 'movieGrid' elemben.
     function displayMovies(moviesToDisplay) {
-        if (!movieGrid) {
-            console.error("A 'movie-grid' elem nem található a HTML-ben.");
-            return;
-        }
-        movieGrid.innerHTML = '';
+        if (!movieGrid) return;
+        movieGrid.innerHTML = ''; // Rács kiürítése.
 
+        // Üzenet, ha nincsenek filmek.
         if (!moviesToDisplay || moviesToDisplay.length === 0) {
             const searchTerm = searchInput ? searchInput.value.trim() : '';
             if (searchTerm !== '') {
@@ -310,14 +342,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const admin = isAdminUser();
 
+        // Minden filmhez létrehoz egy "kártyát".
         moviesToDisplay.forEach(movie => {
             const movieCard = document.createElement('div');
             movieCard.classList.add('movie-card');
             movieCard.dataset.movieId = movie.id;
-            // Kliensoldali kereséshez tároljuk a címet a kártyán (nem láthatóan)
+            // A film címét kisbetűvel eltároljuk a data-title attribútumban a kliensoldali kereséshez.
             movieCard.dataset.title = movie.title.toLowerCase();
 
-
+            // A kártya elemeinek létrehozása (kép, infók, gombok).
             const img = document.createElement('img');
             img.src = movie.img || 'https://via.placeholder.com/300x450.png?text=Filmplak%C3%A1t';
             img.alt = movie.title || "Filmplakát";
@@ -342,11 +375,9 @@ document.addEventListener('DOMContentLoaded', function () {
             ctaButton.classList.add('cta-button');
             ctaButton.textContent = "Részletek és Jegyvásárlás";
 
-            movieInfo.appendChild(title);
-            movieInfo.appendChild(yearP);
-            movieInfo.appendChild(description);
-            movieInfo.appendChild(ctaButton);
-
+            movieInfo.append(title, yearP, description, ctaButton);
+            
+            // Ha a felhasználó admin, hozzáadjuk a szerkesztő és törlő gombokat.
             if (admin) {
                 const adminActionsDiv = document.createElement('div');
                 adminActionsDiv.classList.add('admin-movie-actions');
@@ -361,18 +392,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 deleteBtn.classList.add('delete-movie-btn', 'admin-action-btn');
                 deleteBtn.dataset.movieId = movie.id;
 
-                adminActionsDiv.appendChild(updateBtn);
-                adminActionsDiv.appendChild(deleteBtn);
+                adminActionsDiv.append(updateBtn, deleteBtn);
                 movieInfo.appendChild(adminActionsDiv);
             }
 
-            movieCard.appendChild(img);
-            movieCard.appendChild(movieInfo);
+            movieCard.append(img, movieInfo);
             movieGrid.appendChild(movieCard);
         });
     }
-     // displayScreenings FÜGGVÉNY JAVÍTÁSA
+
+    // Megjeleníti a vetítéseket a 'screeningsGrid' elemben.
     function displayScreenings(screeningsToDisplay) {
+        if (!screeningsGrid) return;
         screeningsGrid.innerHTML = '';
 
         if (!screeningsToDisplay || screeningsToDisplay.length === 0) {
@@ -382,12 +413,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const admin = isAdminUser();
 
+        // Minden vetítéshez létrehoz egy kártyát.
         screeningsToDisplay.forEach(screening => {
             const screeningCard = document.createElement('div');
             screeningCard.classList.add('screening-card');
             screeningCard.dataset.screeningId = screening.id;
 
-            // JAVÍTVA: A film címe is megjelenik a kártyán
+            // A film címe is megjelenik a kártyán (az include-nak köszönhetően).
             const movieTitle = document.createElement('p');
             movieTitle.classList.add('movie-title-on-card');
             movieTitle.textContent = screening.movie ? screening.movie.title : 'Ismeretlen film';
@@ -397,39 +429,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const time = document.createElement('p');
             const date = new Date(screening.time);
-            time.textContent = `Idő: ${date.toLocaleString('hu-HU')}`; // Magyar formátum
+            time.textContent = `Idő: ${date.toLocaleString('hu-HU')}`; // Magyar formátum.
 
             const adminName = document.createElement('p');
             adminName.textContent = `Létrehozta: ${screening.adminName}`;
 
-            screeningCard.appendChild(movieTitle); // Hozzáadva a kártyához
-            screeningCard.appendChild(room);
-            screeningCard.appendChild(time);
-            screeningCard.appendChild(adminName);
-
+            screeningCard.append(movieTitle, room, time, adminName);
+            
+            // Admin gombok hozzáadása.
             if (admin) {
                 const adminActionsDiv = document.createElement('div');
                 adminActionsDiv.classList.add('admin-screening-actions');
-
-                const updateBtn = document.createElement('button');
-                updateBtn.textContent = 'Szerkesztés';
-                updateBtn.classList.add('update-screening-btn', 'admin-action-btn');
-                updateBtn.dataset.screeningId = screening.id;
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Törlés';
-                deleteBtn.classList.add('delete-screening-btn', 'admin-action-btn');
-                deleteBtn.dataset.screeningId = screening.id;
-
-                adminActionsDiv.appendChild(updateBtn);
-                adminActionsDiv.appendChild(deleteBtn);
+                // TODO: Szerkesztő és törlő gombok implementálása a vetítésekhez.
                 screeningCard.appendChild(adminActionsDiv);
             }
 
             screeningsGrid.appendChild(screeningCard);
         });
     }
-     // ÚJ ESEMÉNYKEZELŐ a szűrőhöz
+
+    // Eseménykezelő a vetítések film szerinti szűréséhez.
     if (movieFilterSelect) {
         movieFilterSelect.addEventListener('change', async (event) => {
             const movieId = event.target.value;
@@ -437,10 +456,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             try {
                 if (movieId === 'all') {
-                    // Ha az "Összes film" van kiválasztva, töltsük be az összes vetítést
+                    // Ha az "Összes film" van kiválasztva, betöltjük az összes vetítést.
                     await loadAndDisplayScreenings();
                 } else {
-                    // Különben hívjuk meg a szűrő API-t
+                    // Különben hívjuk az API-t a kiválasztott film ID-jával.
                     const filteredScreenings = await getScreeningsByMovieAPI(movieId);
                     displayScreenings(filteredScreenings);
                 }
@@ -450,36 +469,31 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-    async function loadAndDisplayMovies(forceReload = false) {
+
+    // Betölti az összes filmet az API-ról és megjeleníti őket.
+    async function loadAndDisplayMovies() {
         if (!movieGrid) return;
-
-        // Ha van már cache és nem kényszerítettük az újratöltést, használjuk a cache-t
-        // De itt most a logika az, hogy mindig a backendről töltünk, a kliens oldali keresés
-        // a már DOM-ban lévő elemeken fog futni, vagy a 'allMoviesCache' alapján.
-        // Maradjunk annál, hogy a loadAndDisplayMovies mindig betölti az összeset.
-        // A keresés pedig a movieGrid gyerekein vagy az allMoviesCache-en fog operálni.
-
         movieGrid.innerHTML = '<p class="loading-message">Filmek betöltése...</p>';
         if (searchInput) searchInput.value = '';
         if (clearSearchButton) clearSearchButton.style.display = 'none';
 
         try {
             const moviesData = await getMovies();
-            allMoviesCache = moviesData;
+            allMoviesCache = moviesData; // Adatok mentése a cache-be.
             displayMovies(allMoviesCache);
-            populateMovieSelects(); // ÚJ: A legördülők feltöltése a filmek betöltése után
+            populateMovieSelects(); // A legördülők feltöltése a friss film-listával.
         } catch (error) {
             console.error("Hiba a filmek betöltésekor:", error);
-            allMoviesCache = []; // Hiba esetén cache ürítése
+            allMoviesCache = [];
             if (movieGrid) {
-                movieGrid.innerHTML = `<p class="error-message">Hiba történt a filmek betöltése közben. Kérjük, próbálja később! (${error.message})</p>`;
+                movieGrid.innerHTML = `<p class="error-message">Hiba történt a filmek betöltése közben. (${error.message})</p>`;
             }
         }
     }
-     // Vetítések megjelenítése
+
+    // Betölti az összes vetítést az API-ról és megjeleníti őket.
     async function loadAndDisplayScreenings() {
         if (!screeningsGrid) return;
-        
         screeningsGrid.innerHTML = '<p class="loading-message">Vetítések betöltése...</p>';
         
         try {
@@ -487,15 +501,16 @@ document.addEventListener('DOMContentLoaded', function () {
             displayScreenings(screeningsData);
         } catch (error) {
             console.error("Hiba a vetítések betöltésekor:", error);
-            screeningsGrid.innerHTML = `<p class="error-message">Hiba történt a vetítések betöltése közben. Kérjük, próbálja később! (${error.message})</p>`;
+            screeningsGrid.innerHTML = `<p class="error-message">Hiba történt a vetítések betöltése közben. (${error.message})</p>`;
         }
     }
 
-    // Kliensoldali keresés
+    // Kliensoldali keresést végez a már betöltött filmeken.
     function handleSearch() {
         if (!searchInput || !movieGrid) return;
         const searchTerm = searchInput.value.trim().toLowerCase();
 
+        // A keresés törlése gomb megjelenítése/elrejtése.
         if (clearSearchButton) {
             clearSearchButton.style.display = searchTerm ? 'inline-block' : 'none';
         }
@@ -503,140 +518,62 @@ document.addEventListener('DOMContentLoaded', function () {
         const movieCards = movieGrid.querySelectorAll('.movie-card');
         let foundMovies = 0;
 
+        // Végigmegy az összes filmkártyán.
         movieCards.forEach(card => {
-            // A címet a korábban eltárolt data-title attribútumból olvassuk ki
-            const title = card.dataset.title; // Ez már kisbetűs
+            const title = card.dataset.title; // A keresés a korábban elmentett data-title alapján történik.
             if (title && title.includes(searchTerm)) {
-                card.style.display = ''; // Megjelenítés
+                card.style.display = ''; // Megjeleníti a kártyát, ha egyezik.
                 foundMovies++;
             } else {
-                card.style.display = 'none'; // Elrejtés
+                card.style.display = 'none'; // Elrejti, ha nem egyezik.
             }
         });
 
-        // Üzenet, ha nincs találat
+        // Üzenet megjelenítése, ha nincs találat.
         const noResultsMessage = movieGrid.querySelector('.no-results-message');
-        if (noResultsMessage) {
-            noResultsMessage.remove(); // Előző üzenet eltávolítása
-        }
+        if (noResultsMessage) noResultsMessage.remove();
 
         if (foundMovies === 0 && searchTerm !== '') {
             const p = document.createElement('p');
             p.classList.add('info-message', 'no-results-message');
             p.textContent = `Nincs találat a keresésre: "${searchInput.value.trim()}"`;
-            movieGrid.appendChild(p); // Hozzáadás a grid végéhez, hogy ne írja felül a kártyákat
+            movieGrid.appendChild(p);
         }
     }
 
 
-    // --- Eseménykezelők ---
+    // --- Eseménykezelők Regisztrálása ---
 
+    // Bejelentkezés gomb a headerben.
     if (loginBtnHeader) {
-        loginBtnHeader.addEventListener('click', function (event) {
-            event.preventDefault();
-            showLoginForm();
-            openModal();
-        });
+        loginBtnHeader.addEventListener('click', (e) => { e.preventDefault(); showLoginForm(); openModal(); });
     }
 
+    // Regisztráció gomb a headerben.
     if (registerBtnHeader) {
-        registerBtnHeader.addEventListener('click', function (event) {
-            event.preventDefault();
-            showRegisterForm();
-            openModal();
-        });
+        registerBtnHeader.addEventListener('click', (e) => { e.preventDefault(); showRegisterForm(); openModal(); });
     }
 
+    // Kijelentkezés gomb.
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function (event) {
-            event.preventDefault();
-            handleLogout();
-        });
+        logoutBtn.addEventListener('click', (e) => { e.preventDefault(); handleLogout(); });
     }
 
+    // Modál bezárása a 'x' gombbal.
     if (modalCloseBtn) {
         modalCloseBtn.addEventListener('click', closeModal);
     }
-
+    
+    // Modál bezárása a háttérre kattintással.
     if (authModal) {
-        authModal.addEventListener('click', function (event) {
-            if (event.target === authModal) {
-                closeModal();
-            }
-        });
+        authModal.addEventListener('click', (e) => { if (e.target === authModal) closeModal(); });
     }
-
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') {
-            if (authModal && authModal.style.display === 'flex') closeModal();
-            if (movieFormModal && movieFormModal.style.display === 'flex') closeMovieFormModal();
-        }
-    });
-
-    if (showRegisterFormLink) {
-        showRegisterFormLink.addEventListener('click', function (event) {
-            event.preventDefault();
-            showRegisterForm();
-        });
+    if (movieFormModal) {
+        movieFormModal.addEventListener('click', (e) => { if (e.target === movieFormModal) closeMovieFormModal(); });
     }
-
-    if (showLoginFormLink) {
-        showLoginFormLink.addEventListener('click', function (event) {
-            event.preventDefault();
-            showLoginForm();
-        });
+    if (screeningFormModal) {
+        screeningFormModal.addEventListener('click', (e) => { if (e.target === screeningFormModal) closeScreeningFormModal(); });
     }
-
-    if (loginFormActual) {
-        loginFormActual.addEventListener('submit', function (event) {
-            event.preventDefault();
-            const emailAddress = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-
-            if (!emailAddress || !password) {
-                alert('Kérjük, adja meg az email címét és a jelszavát!');
-                return;
-            }
-
-            checkUser(emailAddress, password)
-                .then(handleLoginSuccess)
-                .catch(error => {
-                    console.error('Hiba a bejelentkezés során:', error);
-                    alert(`Hiba a bejelentkezés során: ${error.message || 'Kérjük, ellenőrizze az adatait.'}`);
-                });
-        });
-    }
-
-    if (registerFormActual) {
-        registerFormActual.addEventListener('submit', function (event) {
-            event.preventDefault();
-            const username = document.getElementById('registerUsername').value;
-            const password = document.getElementById('registerPassword').value;
-            const emailAddress = document.getElementById('registerEmail').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (!username || !emailAddress || !password || !confirmPassword) {
-                alert('Kérjük, töltse ki az összes mezőt!');
-                return;
-            }
-            if (password !== confirmPassword) {
-                alert('A megadott jelszavak nem egyeznek!');
-                return;
-            }
-
-            createUser(username, password, emailAddress)
-                .then(data => {
-                    console.log('Regisztráció sikeres:', data);
-                    alert('Sikeres regisztráció! Most már bejelentkezhet.');
-                    showLoginForm();
-                })
-                .catch(error => {
-                    console.error('Hiba a regisztráció során:', error);
-                    alert(`Hiba a regisztráció során: ${error.message || 'Kérjük, ellenőrizze az adatait.'}`);
-                });
-        });
-    }
-
     if (movieFormModalCloseBtn) {
         movieFormModalCloseBtn.addEventListener('click', closeMovieFormModal);
     }
@@ -644,42 +581,79 @@ document.addEventListener('DOMContentLoaded', function () {
         screeningFormModalCloseBtn.addEventListener('click', closeScreeningFormModal);
     }
 
-    if (movieFormModal) {
-        movieFormModal.addEventListener('click', function (event) {
-            if (event.target === movieFormModal) {
-                closeMovieFormModal();
-            }
-        });
+    // Modál bezárása az 'Escape' billentyűvel.
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (authModal && authModal.style.display === 'flex') closeModal();
+            if (movieFormModal && movieFormModal.style.display === 'flex') closeMovieFormModal();
+            if (screeningFormModal && screeningFormModal.style.display === 'flex') closeScreeningFormModal();
+        }
+    });
+
+    // Váltás a regisztrációs űrlapra.
+    if (showRegisterFormLink) {
+        showRegisterFormLink.addEventListener('click', (e) => { e.preventDefault(); showRegisterForm(); });
     }
-    if (screeningFormModal) {
-        screeningFormModal.addEventListener('click', function (event) {
-            if (event.target === screeningFormModal) {
-                closeScreeningFormModal();
-            }
+
+    // Váltás a bejelentkezési űrlapra.
+    if (showLoginFormLink) {
+        showLoginFormLink.addEventListener('click', (e) => { e.preventDefault(); showLoginForm(); });
+    }
+
+    // Bejelentkezési űrlap elküldése.
+    if (loginFormActual) {
+        loginFormActual.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const emailAddress = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!emailAddress || !password) return alert('Kérjük, adja meg az email címét és a jelszavát!');
+
+            checkUser(emailAddress, password)
+                .then(handleLoginSuccess)
+                .catch(error => alert(`Hiba a bejelentkezés során: ${error.message}`));
         });
     }
 
+    // Regisztrációs űrlap elküldése.
+    if (registerFormActual) {
+        registerFormActual.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const emailAddress = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!username || !emailAddress || !password || !confirmPassword) return alert('Kérjük, töltse ki az összes mezőt!');
+            if (password !== confirmPassword) return alert('A megadott jelszavak nem egyeznek!');
+
+            createUser(username, password, emailAddress)
+                .then(() => {
+                    alert('Sikeres regisztráció! Most már bejelentkezhet.');
+                    showLoginForm();
+                })
+                .catch(error => alert(`Hiba a regisztráció során: ${error.message}`));
+        });
+    }
+    
+    // "Új film" gomb eseménykezelője.
     if (addMovieBtn) {
-        addMovieBtn.addEventListener('click', () => {
-            openMovieFormModal('create');
-        });
+        addMovieBtn.addEventListener('click', () => openMovieFormModal('create'));
     }
+    
+    // "Új vetítés" gomb eseménykezelője.
     if (addScreeningBtn) {
-        addScreeningBtn.addEventListener('click', () => {
-            openScreeningFormModal('create');
-        });
+        addScreeningBtn.addEventListener('click', () => openScreeningFormModal('create'));
     }
 
+    // Film űrlap elküldése (létrehozás vagy frissítés).
     if (movieFormActual) {
-        movieFormActual.addEventListener('submit', async function (event) {
-            event.preventDefault();
+        movieFormActual.addEventListener('submit', async function (e) {
+            e.preventDefault();
             const token = getAuthToken();
             const userData = getUserData();
 
-            if (!token || !userData || !userData.isAdmin) {
-                alert('Nincs jogosultsága ehhez a művelethez, vagy nincs bejelentkezve.');
-                return;
-            }
+            if (!token || !userData?.isAdmin) return alert('Nincs jogosultsága ehhez a művelethez.');
 
             const movieData = {
                 title: movieTitleInput.value,
@@ -700,73 +674,47 @@ document.addEventListener('DOMContentLoaded', function () {
                     alert('Film sikeresen létrehozva!');
                 }
                 closeMovieFormModal();
-                await loadAndDisplayMovies(true); // Kényszerített újratöltés a cache frissítéséhez
+                await loadAndDisplayMovies();
             } catch (error) {
-                console.error('Hiba a film mentése során:', error);
                 alert(`Hiba a film mentése során: ${error.message}`);
             } finally {
                 saveMovieBtn.disabled = false;
                 saveMovieBtn.textContent = 'Mentés';
             }
-            //vetites resz
-            try {
-                if (currentEditingScreeningId) {
-                    await updateMovieAPI(currentEditingScreeningId, screeningData, userData.id, token);
-                    alert('Vetites sikeresen frissítve!');
-                } else {
-                    await createMovieAPI(movieData, userData.id, token);
-                    alert('Vetites sikeresen létrehozva!');
-                }
-                closeScreeningFormModal();
-                await loadAndDisplayScreening(true); // Kényszerített újratöltés a cache frissítéséhez
-            } catch (error) {
-                console.error('Hiba a vetites mentése során:', error);
-                alert(`Hiba a vetites mentése során: ${error.message}`);
-            } finally {
-                saveScreeningBtn.disabled = false;
-                saveScreeningBtn.textContent = 'Mentés';
-            }
         });
     }
-    // screeningFormActual SUBMIT ESEMÉNY JAVÍTÁSA
+
+    // Vetítés űrlapjának elküldése.
     if (screeningFormActual) {
-        screeningFormActual.addEventListener('submit', async function (event) {
-            event.preventDefault();
+        screeningFormActual.addEventListener('submit', async function (e) {
+            e.preventDefault();
             const token = getAuthToken();
             const userData = getUserData();
 
-            if (!token || !userData || !userData.isAdmin) {
-                alert('Nincs jogosultsága ehhez a művelethez.');
-                return;
-            }
+            if (!token || !userData?.isAdmin) return alert('Nincs jogosultsága ehhez a művelethez.');
 
-            // JAVÍTVA: Az adatok összegyűjtése, beleértve a movieId-t is
             const screeningData = {
                 movieId: screeningMovieIdSelect.value,
                 room: screeningRoomInput.value,
                 time: screeningTimeInput.value
             };
 
-            if (!screeningData.movieId) {
-                alert('Kérjük, válasszon filmet!');
-                return;
-            }
+            if (!screeningData.movieId) return alert('Kérjük, válasszon filmet!');
 
             saveScreeningBtn.disabled = true;
             saveScreeningBtn.textContent = 'Mentés...';
 
             try {
                 if (currentEditingScreeningId) {
-                    // TODO: Frissítés implementálása
+                    // TODO: A vetítés frissítésének implementálása
                     alert('Vetítés frissítés még nincs implementálva!');
                 } else {
                     await createScreeningAPI(screeningData, userData.id, token);
                     alert('Vetítés sikeresen létrehozva!');
                 }
                 closeScreeningFormModal();
-                await loadAndDisplayScreenings(); // Frissítjük a listát
+                await loadAndDisplayScreenings(); // Frissíti a vetítések listáját.
             } catch (error) {
-                console.error('Hiba a vetítés mentése során:', error);
                 alert(`Hiba a vetítés mentése során: ${error.message}`);
             } finally {
                 saveScreeningBtn.disabled = false;
@@ -774,116 +722,83 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // Eseménykezelés a filmek rácsán (event delegation).
     if (movieGrid) {
-        movieGrid.addEventListener('click', async function (event) {
-            const target = event.target;
+        movieGrid.addEventListener('click', async function (e) {
+            const target = e.target;
 
-            const ctaButton = target.closest('.cta-button');
-            if (ctaButton) {
-                event.preventDefault();
-                const movieCard = ctaButton.closest('.movie-card');
-                if (!movieCard) return;
-                const movieTitleElement = movieCard.querySelector('.movie-info h3');
-                const movieTitle = movieTitleElement ? movieTitleElement.textContent : "Ismeretlen film";
-
-                if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                    alert(`"${movieTitle}" - Részletek és jegyvásárlás\n(Ez a funkció még fejlesztés alatt áll.)`);
+            // Részletek / Jegyvásárlás gomb
+            if (target.closest('.cta-button')) {
+                e.preventDefault();
+                const movieTitle = target.closest('.movie-card')?.querySelector('h3')?.textContent || "Ismeretlen film";
+                if (isLoggedInOnLoad) {
+                    alert(`"${movieTitle}" - Részletek és jegyvásárlás (Ez a funkció még fejlesztés alatt áll.)`);
                 } else {
-                    alert(`A "${movieTitle}" részleteinek megtekintéséhez és jegyvásárláshoz kérjük, jelentkezzen be.`);
+                    alert(`A(z) "${movieTitle}" részleteinek megtekintéséhez kérjük, jelentkezzen be.`);
                     showLoginForm();
                     openModal();
                 }
-                return;
             }
 
-            const updateButton = target.closest('.update-movie-btn');
-            if (updateButton) {
-                const movieId = updateButton.dataset.movieId;
-                if (!movieId || !allMoviesCache) return;
-
-                // Keresd meg a teljes film adatot a cache-ből, hogy a teljes leírást kapjuk
+            // Szerkesztés gomb
+            else if (target.closest('.update-movie-btn')) {
+                const movieId = target.closest('.update-movie-btn').dataset.movieId;
                 const movieToEdit = allMoviesCache.find(movie => movie.id.toString() === movieId);
-
                 if (movieToEdit) {
                     openMovieFormModal('edit', movieToEdit);
-                } else {
-                    // Fallback, ha valamiért nem lenne a cache-ben (nem szabadna előfordulnia)
-                    console.warn("A szerkesztendő film nem található a cache-ben. A kártya adatait használom.");
-                    const card = updateButton.closest('.movie-card');
-                    const fallbackMovieData = {
-                        id: movieId,
-                        title: card.querySelector('h3').textContent,
-                        description: card.querySelector('.description').textContent, // Ez lehet rövidített
-                        year: parseInt(card.querySelector('.year').textContent.replace('Év: ', '').trim(), 10),
-                        img: card.querySelector('img').src
-                    };
-                    openMovieFormModal('edit', fallbackMovieData);
                 }
-                return;
             }
 
-            const deleteButton = target.closest('.delete-movie-btn');
-            if (deleteButton) {
-                const movieId = deleteButton.dataset.movieId;
-                if (!movieId) return;
+            // Törlés gomb
+            else if (target.closest('.delete-movie-btn')) {
+                const movieId = target.closest('.delete-movie-btn').dataset.movieId;
+                const movieTitle = target.closest('.movie-card')?.querySelector('h3')?.textContent || 'ezt a filmet';
 
-                const movieTitleElement = deleteButton.closest('.movie-card').querySelector('h3');
-                const movieTitle = movieTitleElement ? movieTitleElement.textContent : 'ezt a filmet';
-
-                if (confirm(`Biztosan törölni szeretnéd ${movieTitle}?`)) {
+                if (confirm(`Biztosan törölni szeretnéd a(z) "${movieTitle}" című filmet?`)) {
                     const token = getAuthToken();
                     const userData = getUserData();
-                    if (!token || !userData || !userData.isAdmin) {
-                        alert('Nincs jogosultsága ehhez a művelethez.');
-                        return;
-                    }
+                    if (!token || !userData?.isAdmin) return alert('Nincs jogosultsága ehhez a művelethez.');
                     try {
                         await deleteMovieAPI(movieId, userData.id, token);
                         alert('Film sikeresen törölve!');
-                        await loadAndDisplayMovies(true); // Kényszerített újratöltés
+                        await loadAndDisplayMovies();
                     } catch (error) {
-                        console.error('Hiba a film törlése során:', error);
                         alert(`Hiba a film törlése során: ${error.message}`);
                     }
                 }
-                return;
             }
         });
     }
 
-    // Keresés gomb és input eseménykezelők
+    // Keresőmező eseménykezelői.
     if (searchButton && searchInput) {
         searchButton.addEventListener('click', handleSearch);
-
-        // Gépelés közbeni keresés (debounce-olható lenne nagyobb adatmennyiségnél)
+        // Gépelés közbeni keresés.
         searchInput.addEventListener('input', handleSearch);
-
-        // Enter lenyomására is keressen (bár az 'input' már lefedi)
-        // De ha valaki gyorsan beírja és entert nyom, mielőtt az input esemény lefutna.
-        searchInput.addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Megakadályozza az űrlapküldést, ha lenne
-                handleSearch(); // Biztosíték, de az input eseménynek kellene kezelnie
-            }
-        });
+        // Enter lenyomására is keressen.
+        searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') e.preventDefault(); handleSearch(); });
     }
 
+    // Keresés törlése gomb.
     if (clearSearchButton && searchInput) {
         clearSearchButton.addEventListener('click', () => {
             searchInput.value = '';
-            // A handleSearch() automatikusan visszaállítja az összes filmet, ha a searchTerm üres
             handleSearch();
-            // clearSearchButton.style.display = 'none'; // Ezt a handleSearch kezeli
         });
     }
 
-    // --- Oldal betöltődésekor inicializálás ---
+    // --- Oldal Betöltődésekor Futtatandó Kód (Inicializálás) ---
+
+    // Ellenőrzi, hogy a felhasználó be van-e jelentkezve a munkamenet alapján.
     const isLoggedInOnLoad = sessionStorage.getItem('isLoggedIn') === 'true';
     if (isLoggedInOnLoad) {
+        // Ha be van jelentkezve, frissíti a UI-t és elindítja az inaktivitás figyelőt.
         const storedUserData = getUserData();
         updateLoginUI(true, storedUserData);
         startInactivityTimer();
     } else {
+        // Ha nincs bejelentkezve, beállítja a kijelentkezett állapotot.
         updateLoginUI(false);
     }
 });

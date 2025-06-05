@@ -34,7 +34,7 @@ header nav a {
     margin-left: 10px;
     border-radius: 4px;
     transition: background-color 0.3s ease, color 0.3s ease;
-    cursor: pointer; 
+    cursor: pointer;
 }
 
 header nav a.login-btn {
@@ -59,7 +59,7 @@ main {
     padding: 20px;
     width: 100%;
     max-width: 1200px;
-    margin: 20px auto; 
+    margin: 20px auto;
     box-sizing: border-box;
 }
 
@@ -129,7 +129,7 @@ main {
     border-radius: 4px;
     font-weight: bold;
     transition: background-color 0.3s ease;
-    margin-top: auto; 
+    margin-top: auto;
 }
 
 .movie-info .cta-button:hover {
@@ -143,24 +143,24 @@ footer {
     text-align: center;
     width: 100%;
     box-sizing: border-box;
-    margin-top: auto; 
+    margin-top: auto;
     font-size: 0.9em;
     border-top: 1px solid #333;
 }
 
-/* MODALOK (Bejelentkezés, Regisztráció) */
+
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); 
-    display: none; 
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    padding: 15px; 
+    padding: 15px;
     box-sizing: border-box;
 }
 
@@ -187,7 +187,7 @@ footer {
     background: none;
     border: none;
     color: #b3b3b3;
-    font-size: 2em; 
+    font-size: 2em;
     cursor: pointer;
     line-height: 1;
     padding: 5px;
@@ -319,25 +319,25 @@ footer {
     margin-top: 10px;
     display: flex;
     gap: 10px;
-    justify-content: flex-end; 
+    justify-content: flex-end;
 }
 .admin-movie-actions button {
     padding: 6px 10px;
     font-size: 0.85em;
     cursor: pointer;
-    border: none; 
+    border: none;
     border-radius: 4px;
     color: white;
     transition: background-color 0.2s ease-in-out;
 }
 .admin-movie-actions .update-movie-btn {
-    background-color: #f0ad4e; 
+    background-color: #f0ad4e;
 }
 .admin-movie-actions .update-movie-btn:hover {
     background-color: #ec971f;
 }
 .admin-movie-actions .delete-movie-btn {
-    background-color: #d9534f; 
+    background-color: #d9534f;
 }
 .admin-movie-actions .delete-movie-btn:hover {
     background-color: #c9302c;
@@ -348,7 +348,7 @@ footer {
     padding-right: 10px;
 }
 #addMovieBtn {
-    background-color: #5cb85c; 
+    background-color: #5cb85c;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -367,7 +367,7 @@ footer {
     padding-right: 10px;
 }
 #addScreeningBtn {
-    background-color: #5cb85c; 
+    background-color: #5cb85c;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -391,32 +391,30 @@ footer {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 25px; /* Több hely a filmrács előtt */
-    margin-top: 10px;   /* Kis hely a cím után */
+    margin-bottom: 25px;
+    margin-top: 10px;
     padding: 10px;
-    /* background-color: #2c2c2c; /* Enyhén eltérő háttér */
-    /* border-radius: 8px; */
-    flex-wrap: wrap; /* Tördelés kisebb képernyőkön */
-    gap: 10px; /* Hely az elemek között */
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .search-container input[type="text"] {
     padding: 12px 18px;
     font-size: 1rem;
     border: 1px solid #555;
-    border-radius: 25px; /* Teljesen kerekített */
-    background-color: #1f1f1f; /* Sötétebb input háttér */
+    border-radius: 25px;
+    background-color: #1f1f1f;
     color: #e5e5e5;
     outline: none;
     min-width: 250px;
-    flex-grow: 1; /* Engedi nőni */
-    max-width: 400px; /* Maximális szélesség */
+    flex-grow: 1;
+    max-width: 400px;
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .search-container input[type="text"]:focus {
     border-color: #e50914;
-    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.5); /* Finom fókusz kiemelés */
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.5);
 }
 
 .search-container input[type="text"]::placeholder {
@@ -430,20 +428,20 @@ footer {
     background-color: #e50914;
     color: white;
     cursor: pointer;
-    border-radius: 25px; /* Teljesen kerekített */
+    border-radius: 25px;
     transition: background-color 0.3s;
-    display: inline-flex; /* Ikon és szöveg egymás mellett */
+    display: inline-flex;
     align-items: center;
-    gap: 8px; /* Hely az ikon és szöveg között */
+    gap: 8px;
 }
 
 .search-container button i {
-    font-size: 0.9em; /* Ikon mérete a szöveghez képest */
+    font-size: 0.9em;
 }
 
 
 .search-container button#clearSearchButton {
-    background-color: #666; /* Szürkébb törlés gomb */
+    background-color: #666;
 }
 
 .search-container button:hover {
@@ -454,14 +452,13 @@ footer {
 }
 
 
-/* Stílusok az Új film hozzáadása gombnak, hogy jobban illeszkedjen */
 #addMovieBtnContainer {
-    text-align: center; /* Középre igazítja a gombot */
+    text-align: center;
     margin-bottom: 20px;
 }
 
 #addMovieBtn {
-    background-color: #007bff; /* Kék színű gomb, mint egy "action" gomb */
+    background-color: #007bff;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -475,14 +472,13 @@ footer {
     background-color: #0056b3;
 }
 
-/* Stílusok az Új vetites hozzáadása gombnak, hogy jobban illeszkedjen */
 #addScreeningBtnContainer {
-    text-align: center; /* Középre igazítja a gombot */
+    text-align: center;
     margin-bottom: 20px;
 }
 
 #addScreeningBtn {
-    background-color: #007bff; /* Kék színű gomb, mint egy "action" gomb */
+    background-color: #007bff;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -547,7 +543,7 @@ footer {
 }
 
 .screening-filter-container select,
-.modal-content select { /* Stílus a modálban lévő select-re is */
+.modal-content select {
     padding: 8px 12px;
     font-size: 1rem;
     border: 1px solid #333;
@@ -559,7 +555,7 @@ footer {
 }
 
 .modal-content select {
-    width: 100%; /* A modálban legyen teljes szélességű */
+    width: 100%;
 }
 
 .screening-filter-container select:focus,
@@ -568,28 +564,27 @@ footer {
     box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.3);
 }
 
-/* Kisebb javítás a vetítés kártyához, hogy a film címe is elférjen */
 .screening-card h3 {
     margin-top: 0;
     color: #e5e5e5;
-    font-size: 1.2em; /* Kicsit nagyobb betűméret */
+    font-size: 1.2em;
 }
 .screening-card .movie-title-on-card {
     font-size: 1.1em;
-    color: #f0ad4e; /* Aranysárga szín a film címének */
+    color: #f0ad4e;
     margin-bottom: 10px;
     font-weight: bold;
 }
 
 @media (max-width: 600px) {
     .search-container {
-        flex-direction: column; /* Elemek egymás alá kerülnek */
+        flex-direction: column;
     }
     .search-container input[type="text"],
     .search-container button {
-        width: 100%; /* Teljes szélesség kisebb képernyőn */
-        max-width: 350px; /* De ne legyen túl széles */
-        justify-content: center; /* Gomb tartalmának középre igazítása */
+        width: 100%;
+        max-width: 350px;
+        justify-content: center;
     }
 }
 
@@ -603,17 +598,17 @@ footer {
     }
     header .logo {
         margin-bottom: 10px;
-        text-align: center; 
+        text-align: center;
     }
     header nav {
         width: 100%;
         display: flex;
-        justify-content: space-around; 
+        justify-content: space-around;
     }
     header nav a {
         margin-left: 5px;
         margin-right: 5px;
-        flex-grow: 1; 
+        flex-grow: 1;
         text-align: center;
     }
     .page-title {
@@ -625,7 +620,7 @@ footer {
     }
     .modal-content {
         padding: 20px;
-        margin: 10px; 
+        margin: 10px;
     }
 }
 
@@ -637,7 +632,7 @@ footer {
         font-size: 1.2em;
     }
     header nav a {
-        padding: 8px 10px; 
+        padding: 8px 10px;
         font-size: 0.9em;
     }
     .modal-content h2 {
