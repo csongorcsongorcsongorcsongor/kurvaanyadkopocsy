@@ -235,3 +235,22 @@ export const searchMoviesByTitleAPI = async (title) => {
         throw error;
     }
 };
+export const getScreeningsByMovieAPI = async (movieId) => {
+    try {
+        const res = await fetch(`/api/screenings/movie/${movieId}`);
+        if (!res.ok) {
+            let errorMessage = 'Szűrt vetítések betöltése sikertelen.';
+            try {
+                const errorData = await res.json();
+                errorMessage = errorData.message || errorMessage;
+            } catch (jsonError) {
+                // Hiba esetén a válasz nem biztos, hogy JSON
+            }
+            throw new Error(errorMessage);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error(`Hiba a(z) ${movieId} ID-jű filmhez tartozó vetítések lekérése során:`, error);
+        throw error;
+    }
+};

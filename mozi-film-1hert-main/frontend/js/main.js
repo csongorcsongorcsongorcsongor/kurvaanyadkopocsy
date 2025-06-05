@@ -1,5 +1,4 @@
 // js/main.js
-// A searchMoviesByTitleAPI-t kivesszük, vagy kikommentáljuk, ha már nem használjuk
 import {
     checkUser,
     createUser,
@@ -9,7 +8,7 @@ import {
     deleteMovieAPI,
     createScreeningAPI,
     getScreenings,
-    /*, searchMoviesByTitleAPI */
+    getScreeningsByMovieAPI, // ÚJ import
 } from './api.js';
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -53,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const screeningsGrid = document.querySelector('.screenings-grid');
     const screeningsTitle = document.querySelector('.screenings-title');
     const addScreeningBtnContainer = document.getElementById('addScreeningBtnContainer');
-    const addScreeningBtn = document.getElementById('addScreeningBtn')
+    const addScreeningBtn = document.getElementById('addScreeningBtn');
 
     const movieFormModal = document.getElementById('movieFormModal');
     const movieFormModalCloseBtn = document.getElementById('movieFormModalCloseBtn');
@@ -71,10 +70,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const screeningFormActual = document.getElementById('screeningFormActual');
     const screeningFormTitle = document.getElementById('screeningFormTitle');
     const editScreeningIdInput = document.getElementById('editScreeningId'); // 
-    const screeningRoomInput = document.getElementById('screeningRoom'); // 
-    const screeningTimeInput = document.getElementById('screeningTime'); // 
-    const saveScreeningBtn = document.getElementById('saveScreeningBtn'); // 
+    const screeningRoomInput = document.getElementById('screeningRoom');
+    const screeningTimeInput = document.getElementById('screeningTime');
+    const saveScreeningBtn = document.getElementById('saveScreeningBtn');
+    const movieFilterSelect = document.getElementById('movieFilterSelect');
+    const screeningMovieIdSelect = document.getElementById('screeningMovieIdSelect');
 
+    
     let currentEditingMovieId = null;
     let currentEditingScreeningId = null;
     let allMoviesCache = []; // Cache a kliensoldali kereséshez
@@ -139,6 +141,23 @@ document.addEventListener('DOMContentLoaded', function () {
         movieFormModal.style.display = 'flex';
     }
 
+    // ÚJ FÜGGVÉNY: A filmválasztó legördülők feltöltése
+    function populateMovieSelects() {
+        if (!movieFilterSelect || !screeningMovieIdSelect || allMoviesCache.length === 0) return;
+
+        // Előző opciók törlése (az első kivételével)
+        movieFilterSelect.innerHTML = '<option value="all">Összes film</option>';
+        screeningMovieIdSelect.innerHTML = '<option value="" disabled selected>Válassz filmet...</option>';
+
+        allMoviesCache.forEach(movie => {
+            const option = document.createElement('option');
+            option.value = movie.id;
+            option.textContent = movie.title;
+
+            movieFilterSelect.appendChild(option.cloneNode(true));
+            screeningMovieIdSelect.appendChild(option.cloneNode(true));
+        });
+    }
     // Screening form megnyitása - JAVÍTVA
     function openScreeningFormModal(mode = 'create', screening = null) {
         if (!screeningFormModal) return;
@@ -352,11 +371,12 @@ document.addEventListener('DOMContentLoaded', function () {
             movieGrid.appendChild(movieCard);
         });
     }
-     function displayScreenings(screeningsToDisplay) {
+     // displayScreenings FÜGGVÉNY JAVÍTÁSA
+    function displayScreenings(screeningsToDisplay) {
         screeningsGrid.innerHTML = '';
 
         if (!screeningsToDisplay || screeningsToDisplay.length === 0) {
-            screeningsGrid.innerHTML = '<p class="info-message">Jelenleg nincsenek elérhető vetítések.</p>';
+            screeningsGrid.innerHTML = '<p class="info-message">Nincsenek a szűrőfeltételnek megfelelő vetítések.</p>';
             return;
         }
 
@@ -367,16 +387,22 @@ document.addEventListener('DOMContentLoaded', function () {
             screeningCard.classList.add('screening-card');
             screeningCard.dataset.screeningId = screening.id;
 
+            // JAVÍTVA: A film címe is megjelenik a kártyán
+            const movieTitle = document.createElement('p');
+            movieTitle.classList.add('movie-title-on-card');
+            movieTitle.textContent = screening.movie ? screening.movie.title : 'Ismeretlen film';
+
             const room = document.createElement('h3');
-            room.textContent = `Szoba: ${screening.room}`;
+            room.textContent = `Terem: ${screening.room}`;
 
             const time = document.createElement('p');
             const date = new Date(screening.time);
-            time.textContent = `Idő: ${date.toLocaleString()}`;
+            time.textContent = `Idő: ${date.toLocaleString('hu-HU')}`; // Magyar formátum
 
             const adminName = document.createElement('p');
-            adminName.textContent = `Admin: ${screening.adminName}`;
+            adminName.textContent = `Létrehozta: ${screening.adminName}`;
 
+            screeningCard.appendChild(movieTitle); // Hozzáadva a kártyához
             screeningCard.appendChild(room);
             screeningCard.appendChild(time);
             screeningCard.appendChild(adminName);
@@ -403,7 +429,27 @@ document.addEventListener('DOMContentLoaded', function () {
             screeningsGrid.appendChild(screeningCard);
         });
     }
+     // ÚJ ESEMÉNYKEZELŐ a szűrőhöz
+    if (movieFilterSelect) {
+        movieFilterSelect.addEventListener('change', async (event) => {
+            const movieId = event.target.value;
+            screeningsGrid.innerHTML = '<p class="loading-message">Vetítések frissítése...</p>';
 
+            try {
+                if (movieId === 'all') {
+                    // Ha az "Összes film" van kiválasztva, töltsük be az összes vetítést
+                    await loadAndDisplayScreenings();
+                } else {
+                    // Különben hívjuk meg a szűrő API-t
+                    const filteredScreenings = await getScreeningsByMovieAPI(movieId);
+                    displayScreenings(filteredScreenings);
+                }
+            } catch (error) {
+                console.error('Hiba a vetítések szűrésekor:', error);
+                screeningsGrid.innerHTML = `<p class="error-message">Hiba történt a vetítések frissítése közben. (${error.message})</p>`;
+            }
+        });
+    }
     async function loadAndDisplayMovies(forceReload = false) {
         if (!movieGrid) return;
 
@@ -419,8 +465,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const moviesData = await getMovies();
-            allMoviesCache = moviesData; // Cache frissítése
-            displayMovies(allMoviesCache); // Az összes filmet megjelenítjük
+            allMoviesCache = moviesData;
+            displayMovies(allMoviesCache);
+            populateMovieSelects(); // ÚJ: A legördülők feltöltése a filmek betöltése után
         } catch (error) {
             console.error("Hiba a filmek betöltésekor:", error);
             allMoviesCache = []; // Hiba esetén cache ürítése
@@ -681,40 +728,43 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+    // screeningFormActual SUBMIT ESEMÉNY JAVÍTÁSA
     if (screeningFormActual) {
-        screeningFormActual.addEventListener('submit', async function(event) {
+        screeningFormActual.addEventListener('submit', async function (event) {
             event.preventDefault();
             const token = getAuthToken();
             const userData = getUserData();
-    
+
             if (!token || !userData || !userData.isAdmin) {
-                alert('Nincs jogosultsága ehhez a művelethez, vagy nincs bejelentkezve.');
+                alert('Nincs jogosultsága ehhez a művelethez.');
                 return;
             }
-    
-            // Ellenőrizzük, hogy van-e érték a mezőben
-            if (!screeningTimeInput.value) {
-                alert('Kérjük, adja meg az időpontot!');
-                return;
-            }
-    
+
+            // JAVÍTVA: Az adatok összegyűjtése, beleértve a movieId-t is
             const screeningData = {
+                movieId: screeningMovieIdSelect.value,
                 room: screeningRoomInput.value,
-                time: screeningTimeInput.value // Küldjük el a nyers értéket (YYYY-MM-DDTHH:mm)
+                time: screeningTimeInput.value
             };
-    
+
+            if (!screeningData.movieId) {
+                alert('Kérjük, válasszon filmet!');
+                return;
+            }
+
             saveScreeningBtn.disabled = true;
             saveScreeningBtn.textContent = 'Mentés...';
-    
+
             try {
                 if (currentEditingScreeningId) {
-                    // TODO: Implementálj updateScreeningAPI-t
+                    // TODO: Frissítés implementálása
                     alert('Vetítés frissítés még nincs implementálva!');
                 } else {
                     await createScreeningAPI(screeningData, userData.id, token);
                     alert('Vetítés sikeresen létrehozva!');
                 }
                 closeScreeningFormModal();
+                await loadAndDisplayScreenings(); // Frissítjük a listát
             } catch (error) {
                 console.error('Hiba a vetítés mentése során:', error);
                 alert(`Hiba a vetítés mentése során: ${error.message}`);

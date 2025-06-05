@@ -24,6 +24,7 @@ router.delete('/movies/movies/:movieId', movieController.deleteMovie)
 //
 router.post('/screenings/screenings', screeningController.createScreening)
 router.get('/screenings/screenings', screeningController.getAllScreenings)
+router.get('/screenings/movie/:movieId', screeningController.getScreeningsByMovieId)
 
 
 module.exports = router;

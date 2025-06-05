@@ -527,6 +527,59 @@ footer {
     gap: 10px;
 }
 
+.screening-filter-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #1f1f1f;
+    border-radius: 8px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.screening-filter-container label {
+    font-size: 1em;
+    color: #b3b3b3;
+}
+
+.screening-filter-container select,
+.modal-content select { /* Stílus a modálban lévő select-re is */
+    padding: 8px 12px;
+    font-size: 1rem;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #333;
+    color: #e5e5e5;
+    outline: none;
+    cursor: pointer;
+}
+
+.modal-content select {
+    width: 100%; /* A modálban legyen teljes szélességű */
+}
+
+.screening-filter-container select:focus,
+.modal-content select:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.3);
+}
+
+/* Kisebb javítás a vetítés kártyához, hogy a film címe is elférjen */
+.screening-card h3 {
+    margin-top: 0;
+    color: #e5e5e5;
+    font-size: 1.2em; /* Kicsit nagyobb betűméret */
+}
+.screening-card .movie-title-on-card {
+    font-size: 1.1em;
+    color: #f0ad4e; /* Aranysárga szín a film címének */
+    margin-bottom: 10px;
+    font-weight: bold;
+}
 
 @media (max-width: 600px) {
     .search-container {
