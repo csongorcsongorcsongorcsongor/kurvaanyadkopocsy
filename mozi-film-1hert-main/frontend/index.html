@@ -58,6 +58,10 @@
                 <option value="all">Összes film</option>
                 <!-- A filmek ide töltődnek be dinamikusan -->
             </select>
+
+            <label for="dateFilterInput">Szűrés dátumra:</label>
+            <input type="date" id="dateFilterInput">
+            <button id="clearDateFilterBtn" style="display: none; background-color: #6c757d;">Szűrő törlése</button>
         </div>
 
         <div class="screenings-grid"></div>
@@ -177,6 +181,16 @@
                 </div>
                 <button type="submit" class="form-button" id="saveScreeningBtn">Mentés</button>
             </form>
+        </div>
+    </div>
+     <!-- Vetítés Részletei Modal -->
+    <div id="screeningDetailsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-details">
+            <button class="modal-close-btn" id="screeningDetailsModalCloseBtn" aria-label="Bezárás">×</button>
+            <div id="screeningDetailsContent">
+                <!-- A tartalom ide töltődik be dinamikusan JavaScript segítségével -->
+                <p class="loading-message">Részletek betöltése...</p>
+            </div>
         </div>
     </div>
     

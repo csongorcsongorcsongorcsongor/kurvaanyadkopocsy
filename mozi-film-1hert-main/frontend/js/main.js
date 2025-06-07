@@ -12,6 +12,9 @@ import {
     createScreeningAPI,
     getScreenings,
     getScreeningsByMovieAPI, // ÚJ import a vetítések filmszerinti szűréséhez
+    getScreeningsByDateAPI, // ÚJ import a vetítések dátumszerinti szűréséhez
+    getScreeningDetailsAPI,
+
 } from './api.js';
 
 // Az eseménykezelő biztosítja, hogy a JavaScript kód csak azután fusson le,
@@ -22,8 +25,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // A gyakran használt HTML elemeket változókba mentjük a gyorsabb elérés és átláthatóság érdekében.
 
     // Autentikációs (bejelentkezés/regisztráció) modál és annak bezáró gombja.
+    const screeningDetailsModal = document.getElementById('screeningDetailsModal');
+    const screeningDetailsModalCloseBtn = document.getElementById('screeningDetailsModalCloseBtn');
+    const screeningDetailsContent = document.getElementById('screeningDetailsContent');
     const authModal = document.getElementById('authModal');
     const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const dateFilterInput = document.getElementById('dateFilterInput');
+    const clearDateFilterBtn = document.getElementById('clearDateFilterBtn');
 
     // Navigációs elemek a bejelentkezett és kijelentkezett állapotokhoz.
     const navLoggedOut = document.getElementById('navLoggedOut');
@@ -400,6 +408,46 @@ document.addEventListener('DOMContentLoaded', function () {
             movieGrid.appendChild(movieCard);
         });
     }
+    function openScreeningDetailsModal(screeningData) {
+        if (!screeningDetailsModal || !screeningDetailsContent) return;
+
+        // Formázott dátum és idő
+        const date = new Date(screeningData.time);
+        const formattedDate = date.toLocaleDateString('hu-HU', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+        const formattedTime = date.toLocaleTimeString('hu-HU', {
+            hour: '2-digit', minute: '2-digit'
+        });
+
+        // Modális ablak tartalmának összeállítása
+        screeningDetailsContent.innerHTML = `
+            <h2 class="details-title">${screeningData.movie.title}</h2>
+            <div class="details-grid">
+                <img src="${screeningData.movie.img || 'https://via.placeholder.com/300x450'}" alt="${screeningData.movie.title}" class="details-img">
+                <div class="details-info">
+                    <p><strong>Vetítés időpontja:</strong> ${formattedDate} - ${formattedTime}</p>
+                    <p><strong>Terem:</strong> ${screeningData.room}</p>
+                    <p><strong>Film éve:</strong> ${screeningData.movie.year}</p>
+                    <p><strong>Leírás:</strong></p>
+                    <p class="details-description">${screeningData.movie.description}</p>
+                    <p><small>Vetítést rögzítette: ${screeningData.adminName}</small></p>
+                    <button class="cta-button">Jegyvásárlás</button>
+                </div>
+            </div>
+        `;
+
+        screeningDetailsModal.style.display = 'flex';
+    }
+
+    // Bezárja a vetítés részletei modált
+    function closeScreeningDetailsModal() {
+        if (screeningDetailsModal) {
+            screeningDetailsModal.style.display = 'none';
+            // Töröljük a tartalmat, hogy a következő megnyitáskor ne a régi látszódjon
+            screeningDetailsContent.innerHTML = '<p class="loading-message">Részletek betöltése...</p>';
+        }
+    }
 
     // Megjeleníti a vetítéseket a 'screeningsGrid' elemben.
     function displayScreenings(screeningsToDisplay) {
@@ -430,6 +478,20 @@ document.addEventListener('DOMContentLoaded', function () {
             const time = document.createElement('p');
             const date = new Date(screening.time);
             time.textContent = `Idő: ${date.toLocaleString('hu-HU')}`; // Magyar formátum.
+            const detailsBtn = document.createElement('button');
+            detailsBtn.textContent = 'Részletek';
+            detailsBtn.classList.add('screening-details-btn');
+            detailsBtn.dataset.screeningId = screening.id;
+
+            screeningCard.append(movieTitle, room, time, detailsBtn); // Hozzáadjuk a gombot
+
+            // Az admin gombokat most a gomb mellé tesszük
+            if (admin) {
+                const adminActionsDiv = document.createElement('div');
+                adminActionsDiv.classList.add('admin-screening-actions');
+                // TODO: Szerkesztő és törlő gombok implementálása a vetítésekhez.
+                screeningCard.appendChild(adminActionsDiv);
+            }
 
             const adminName = document.createElement('p');
             adminName.textContent = `Létrehozta: ${screening.adminName}`;
@@ -453,6 +515,9 @@ document.addEventListener('DOMContentLoaded', function () {
         movieFilterSelect.addEventListener('change', async (event) => {
             const movieId = event.target.value;
             screeningsGrid.innerHTML = '<p class="loading-message">Vetítések frissítése...</p>';
+            // Ha a film szűrőt használjuk, töröljük a dátum szűrő értékét.
+            if (dateFilterInput) dateFilterInput.value = '';
+            if (clearDateFilterBtn) clearDateFilterBtn.style.display = 'none';
 
             try {
                 if (movieId === 'all') {
@@ -544,6 +609,41 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Eseménykezelő a vetítések dátum szerinti szűréséhez
+    if (dateFilterInput) {
+        dateFilterInput.addEventListener('change', async (event) => {
+            const selectedDate = event.target.value;
+
+            // Ha nincs dátum kiválasztva (pl. a felhasználó törölte), ne csináljunk semmit.
+            if (!selectedDate) {
+                return;
+            }
+
+            screeningsGrid.innerHTML = '<p class="loading-message">Vetítések frissítése...</p>';
+            
+            // Ha a dátum szűrőt használjuk, állítsuk vissza a film szűrőt "Összes film"-re.
+            if (movieFilterSelect) movieFilterSelect.value = 'all';
+            if (clearDateFilterBtn) clearDateFilterBtn.style.display = 'inline-block';
+
+            try {
+                const filteredScreenings = await getScreeningsByDateAPI(selectedDate);
+                displayScreenings(filteredScreenings);
+            } catch (error) {
+                console.error('Hiba a vetítések dátum szerinti szűrésekor:', error);
+                screeningsGrid.innerHTML = `<p class="error-message">Hiba történt a vetítések frissítése közben. (${error.message})</p>`;
+            }
+        });
+    }
+
+    // Eseménykezelő a dátumszűrő törlése gombhoz
+    if (clearDateFilterBtn) {
+        clearDateFilterBtn.addEventListener('click', async () => {
+            dateFilterInput.value = ''; // Töröljük a dátumot az inputból
+            clearDateFilterBtn.style.display = 'none'; // Elrejtjük a gombot
+            await loadAndDisplayScreenings(); // Újratöltjük az összes vetítést
+        });
+    }
+
     // Kliensoldali keresést végez a már betöltött filmeken.
     function handleSearch() {
         if (!searchInput || !movieGrid) return;
@@ -620,12 +720,20 @@ document.addEventListener('DOMContentLoaded', function () {
         screeningFormModalCloseBtn.addEventListener('click', closeScreeningFormModal);
     }
 
+    if (screeningDetailsModal) {
+        screeningDetailsModal.addEventListener('click', (e) => { if (e.target === screeningDetailsModal) closeScreeningDetailsModal(); });
+    }
+    if (screeningDetailsModalCloseBtn) {
+        screeningDetailsModalCloseBtn.addEventListener('click', closeScreeningDetailsModal);
+    }
+
     // Modál bezárása az 'Escape' billentyűvel.
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (authModal && authModal.style.display === 'flex') closeModal();
             if (movieFormModal && movieFormModal.style.display === 'flex') closeMovieFormModal();
             if (screeningFormModal && screeningFormModal.style.display === 'flex') closeScreeningFormModal();
+            if (screeningDetailsModal && screeningDetailsModal.style.display === 'flex') closeScreeningDetailsModal();
         }
     });
 
@@ -760,6 +868,25 @@ document.addEventListener('DOMContentLoaded', function () {
             } finally {
                 saveScreeningBtn.disabled = false;
                 saveScreeningBtn.textContent = 'Mentés';
+            }
+        });
+    }
+
+     // Eseménykezelés a vetítések rácsán (event delegation)
+    if (screeningsGrid) {
+        screeningsGrid.addEventListener('click', async (e) => {
+            const detailsButton = e.target.closest('.screening-details-btn');
+            if (detailsButton) {
+                const screeningId = detailsButton.dataset.screeningId;
+                try {
+                    // Megjelenítjük a modált egy betöltő üzenettel, amíg az adatok jönnek
+                    screeningDetailsModal.style.display = 'flex';
+                    const screeningDetails = await getScreeningDetailsAPI(screeningId);
+                    openScreeningDetailsModal(screeningDetails);
+                } catch (error) {
+                    alert(`Hiba a részletek betöltésekor: ${error.message}`);
+                    closeScreeningDetailsModal();
+                }
             }
         });
     }

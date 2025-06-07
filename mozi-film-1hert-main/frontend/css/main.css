@@ -647,4 +647,91 @@ footer {
         padding: 10px 15px;
         font-size: 1em;
     }
+    .screening-card {
+    /* Hozzáadunk egy kis extra helyet a gombnak */
+    display: flex;
+    flex-direction: column;
+}
+
+.screening-card p {
+    flex-grow: 1; /* A terem és időpont kitölti a helyet */
+}
+
+.screening-details-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-top: 10px; /* Térköz a gomb felett */
+    transition: background-color 0.3s ease;
+    align-self: flex-start; /* Gombot balra igazítja */
+    width: 100%;
+}
+
+.screening-details-btn:hover {
+    background-color: #0056b3;
+}
+
+
+/* Vetítés Részletei Modal Stílusai */
+.modal-details {
+    max-width: 800px; /* Szélesebb modal a részletekhez */
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 250px 1fr; /* Kép | Információk */
+    gap: 25px;
+    align-items: start;
+}
+
+.details-img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.details-title {
+    font-size: 2em;
+    color: #e50914;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.details-info p {
+    margin: 0 0 12px 0;
+    line-height: 1.6;
+}
+
+.details-info p strong {
+    color: #c0c0c0;
+}
+
+.details-description {
+    font-style: italic;
+    color: #b3b3b3;
+}
+
+.details-info .cta-button {
+    margin-top: 20px;
+}
+
+/* Reszponzív nézet a részletek modálhoz */
+@media (max-width: 768px) {
+    .details-grid {
+        grid-template-columns: 1fr; /* Elemek egymás alá kerülnek */
+        text-align: center;
+    }
+    .details-img {
+        max-width: 250px;
+        margin: 0 auto 20px auto;
+    }
+    .details-title {
+        text-align: center;
+    }
+}
+
 }

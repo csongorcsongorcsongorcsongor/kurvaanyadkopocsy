@@ -302,3 +302,48 @@ export const getScreeningsByMovieAPI = async (movieId) => {
         throw error;
     }
 };
+
+// Vetítések lekérése egy adott dátum alapján
+export const getScreeningsByDateAPI = async (dateString) => {
+    try {
+        // GET kérés a dátumhoz tartozó vetítések végpontjára.
+        const res = await fetch(`/api/screenings/date/${dateString}`);
+        if (!res.ok) {
+            let errorMessage = 'Dátum szerinti szűrt vetítések betöltése sikertelen.';
+            try {
+                const errorData = await res.json();
+                errorMessage = errorData.message || errorMessage;
+            } catch (jsonError) {
+                // Hiba esetén a válasz nem biztos, hogy JSON formátumú.
+            }
+            throw new Error(errorMessage);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error(`Hiba a(z) ${dateString} dátumhoz tartozó vetítések lekérése során:`, error);
+        throw error;
+    }
+};
+
+// Egy konkrét vetítés részletes adatainak lekérése
+export const getScreeningDetailsAPI = async (screeningId) => {
+    try {
+        const res = await fetch(`/api/screenings/details/${screeningId}`);
+        if (!res.ok) {
+            let errorMessage = 'Vetítés részleteinek betöltése sikertelen.';
+            if (res.status === 404) {
+                errorMessage = 'A keresett vetítés nem található.';
+            } else {
+                 try {
+                    const errorData = await res.json();
+                    errorMessage = errorData.message || errorMessage;
+                } catch (e) { /* Hibaüzenet nem JSON */ }
+            }
+            throw new Error(errorMessage);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error(`Hiba a(z) ${screeningId} ID-jű vetítés részleteinek lekérése során:`, error);
+        throw error;
+    }
+};
