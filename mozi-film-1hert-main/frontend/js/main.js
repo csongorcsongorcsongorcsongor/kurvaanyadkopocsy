@@ -504,6 +504,45 @@ document.addEventListener('DOMContentLoaded', function () {
             screeningsGrid.innerHTML = `<p class="error-message">Hiba történt a vetítések betöltése közben. (${error.message})</p>`;
         }
     }
+    async function refreshPageData() {
+        if (!movieGrid && !screeningsGrid) return; // Ha egyik sincs az oldalon, ne csináljon semmit.
+
+        // Visszajelzés a felhasználónak, amíg töltődnek az adatok
+        if (movieGrid) movieGrid.innerHTML = '<p class="loading-message">Filmek frissítése...</p>';
+        if (screeningsGrid) screeningsGrid.innerHTML = '<p class="loading-message">Vetítések frissítése...</p>';
+        if (searchInput) searchInput.value = '';
+        if (clearSearchButton) clearSearchButton.style.display = 'none';
+
+        try {
+            // Párhuzamosan kérjük le a filmeket és a vetítéseket a jobb teljesítmény érdekében.
+            const [moviesData, screeningsData] = await Promise.all([
+                getMovies(),
+                getScreenings()
+            ]);
+
+            // 1. Filmek feldolgozása (erre épül a vetítések szűrője)
+            allMoviesCache = moviesData;
+            if (movieGrid) {
+                displayMovies(allMoviesCache);
+            }
+            populateMovieSelects(); // Fontos, hogy a dropdown menük is frissüljenek!
+
+            // 2. Vetítések feldolgozása
+            if (screeningsGrid) {
+                displayScreenings(screeningsData);
+            }
+
+        } catch (error) {
+            console.error("Hiba az adatok közös frissítésekor:", error);
+            // Hibaüzenetek megjelenítése a UI-on
+            if (movieGrid) {
+                movieGrid.innerHTML = `<p class="error-message">Hiba történt a filmek betöltése közben. (${error.message})</p>`;
+            }
+            if (screeningsGrid) {
+                screeningsGrid.innerHTML = `<p class="error-message">Hiba történt a vetítések betöltése közben. (${error.message})</p>`;
+            }
+        }
+    }
 
     // Kliensoldali keresést végez a már betöltött filmeken.
     function handleSearch() {
@@ -674,7 +713,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     alert('Film sikeresen létrehozva!');
                 }
                 closeMovieFormModal();
-                await loadAndDisplayMovies();
+                
+                await refreshPageData(); // Ez frissíti a filmeket ÉS a vetítéseket is.
+
             } catch (error) {
                 alert(`Hiba a film mentése során: ${error.message}`);
             } finally {
@@ -762,7 +803,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     try {
                         await deleteMovieAPI(movieId, userData.id, token);
                         alert('Film sikeresen törölve!');
-                        await loadAndDisplayMovies();
+                        await refreshPageData(); // Ez frissíti a filmeket ÉS a vetítéseket is.
                     } catch (error) {
                         alert(`Hiba a film törlése során: ${error.message}`);
                     }
@@ -801,4 +842,5 @@ document.addEventListener('DOMContentLoaded', function () {
         // Ha nincs bejelentkezve, beállítja a kijelentkezett állapotot.
         updateLoginUI(false);
     }
+    refreshPageData();
 });
