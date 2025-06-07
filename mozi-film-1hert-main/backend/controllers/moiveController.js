@@ -1,9 +1,13 @@
+//movieController.js
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 const Joi = require('joi');
 const { Op } = require('sequelize');
 const Movies = require('../models/Movies')
 const User = require('../models/User')
+const Screenings = require('../models/Screenings'); 
+
 
 
 exports.getAllMovies = async (req, res) => {
@@ -128,8 +132,18 @@ exports.deleteMovie = async (req, res) => {
             return res.status(404).json({ message: 'Movie not found' });
         }
 
+        
+        // 1.  Töröljük az összes vetítést, ami ehhez a filmhez tartozik.
+        await Screenings.destroy({
+            where: {
+                movieId: movieId
+            }
+        });
+        
+        // 2.  Most már biztonságosan törölhetjük a filmet.
         await movie.destroy();
-        res.status(200).json({ message: 'Movie deleted successfully' });
+
+        res.status(200).json({ message: 'Movie and all associated screenings deleted successfully' });
     } catch (error) {
         console.error('Error deleting movie:', error);
         res.status(500).json({ message: 'Error deleting movie' });

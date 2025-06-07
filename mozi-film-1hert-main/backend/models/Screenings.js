@@ -47,7 +47,10 @@ const Screenings = sequelize.define('screenings', {
 // Itt definiáljuk a modellek közötti kapcsolatokat 
 // A Screenings.belongsTo(Movies, ...) azt jelenti, hogy "egy Vetítés egy Filmhez tartozik".
 // A 'foreignKey' megadja, hogy a 'screenings' táblában a 'movieId' oszlop köti össze őket.
-Screenings.belongsTo(Movies, { foreignKey: 'movieId' });
+Screenings.belongsTo(Movies, { 
+    foreignKey: 'movieId',
+    onDelete: 'CASCADE' // Ha egy film törlődik, a hozzá tartozó vetítések is törlődjenek.
+});;
 
 // A Movies.hasMany(Screenings, ...) a kapcsolat másik oldalát definiálja: "egy Filmnek több Vetítése lehet".
 // Ez teszi lehetővé, hogy egy film objektumon keresztül könnyen lekérdezzük az összes hozzá tartozó vetítést.
